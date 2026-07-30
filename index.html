@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0d13">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Rutina RPG">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23facc15'/%3E%3Cstop offset='1' stop-color='%23f97316'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='22' fill='%230f1117'/%3E%3Crect x='4' y='4' width='92' height='92' rx='18' fill='url(%23g)' opacity='0.15'/%3E%3Ctext x='50' y='66' font-size='54' text-anchor='middle'%3E%F0%9F%8E%AE%3C/text%3E%3C/svg%3E">
+<title>Rutina RPG — Waltin</title>
+<style>
+  :root{
+    --bg:#0b0d13; --panel:#171a24; --panel2:#1e2230; --panel3:#252b3d; --border:#2a2f3d;
+    --text:#e8e9ee; --muted:#9096a8;
+    --creat:#c084fc; --cuerpo:#4ade80; --mente:#60a5fa; --disc:#f97316;
+    --xp:#facc15; --danger:#f87171; --gold:#fbbf24;
+    --rank:#facc15;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:
+      radial-gradient(circle at 15% 0%, rgba(192,132,252,.10), transparent 40%),
+      radial-gradient(circle at 85% 15%, rgba(96,165,250,.10), transparent 45%),
+      radial-gradient(circle at 50% 100%, rgba(249,115,22,.08), transparent 50%),
+      radial-gradient(circle at top, #161a26, #0b0d13 70%);
+    background-attachment:fixed;
+    color:var(--text); font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    padding-bottom:calc(78px + var(--safe-b));
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:calc(14px + var(--safe-t)) 14px 20px;}
+  a{color:inherit;}
+
+  /* ---------- HUD ---------- */
+  .hud{
+    background:linear-gradient(135deg,var(--panel),var(--panel2));
+    border:1px solid var(--border); border-radius:18px; padding:16px;
+    display:flex; gap:14px; align-items:center; margin-bottom:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    position:relative; overflow:hidden;
+  }
+  .hud::after{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+    background:radial-gradient(circle at 0% 0%, var(--rank)22, transparent 60%);
+  }
+  .avatarzone{position:relative; flex-shrink:0; width:78px; height:78px; display:flex; align-items:center; justify-content:center;}
+  .orbit{position:absolute; inset:-14px; animation:spin 9s linear infinite;}
+  .orbit-dot{position:absolute; top:50%; left:50%; width:6px; height:6px; border-radius:50%; background:var(--rank); box-shadow:0 0 8px var(--rank);}
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .lvlbadge{
+    width:var(--avsize,72px); height:var(--avsize,72px); border-radius:50%;
+    background:conic-gradient(var(--rank) calc(var(--pct,0)*1%), #2a2f3d 0);
+    display:flex;align-items:center;justify-content:center;font-weight:700;
+    position:relative; flex-shrink:0; transition:width .4s,height .4s;
+    box-shadow:0 0 18px color-mix(in srgb, var(--rank) 45%, transparent);
+  }
+  .lvlbadge::before{content:"";position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 35% 25%, var(--panel3), var(--panel));}
+  .lvlbadge .rankicon{position:relative;z-index:1;font-size:28px;filter:drop-shadow(0 0 6px rgba(0,0,0,.6));}
+  .lvlbadge .lvltag{position:absolute; bottom:-4px; right:-4px; z-index:2; background:var(--rank); color:#1a1300; font-size:11px; font-weight:800; border-radius:20px; padding:2px 6px; box-shadow:0 2px 6px rgba(0,0,0,.4);}
+  .mythic .lvlbadge{animation:pulseglow 2.2s ease-in-out infinite;}
+  @keyframes pulseglow{ 0%,100%{ box-shadow:0 0 18px color-mix(in srgb, var(--rank) 45%, transparent);} 50%{ box-shadow:0 0 34px color-mix(in srgb, var(--rank) 75%, transparent);} }
+
+  .hudinfo{flex:1;min-width:0;}
+  .rankname{font-size:13px; font-weight:700; color:var(--rank); display:flex; align-items:center; gap:6px; margin-bottom:2px;}
+  .lvlrow{font-size:12px; color:var(--muted); margin-bottom:6px;}
+  .lvlrow b{color:var(--text);}
+  .xpbar{height:10px;border-radius:6px;background:#2a2f3d;overflow:hidden;position:relative;}
+  .xpbar>div{height:100%;background:linear-gradient(90deg,var(--rank),#fde68a);transition:width .5s cubic-bezier(.2,.9,.3,1);}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .pill{background:#20242f;border:1px solid var(--border);border-radius:20px;padding:5px 10px;font-size:11.5px;color:var(--muted);white-space:nowrap;}
+  .pill b{color:var(--text);}
+  .gearbtn{background:none;border:1px solid var(--border);color:var(--muted);width:34px;height:34px;border-radius:50%;font-size:16px;flex-shrink:0;cursor:pointer;align-self:flex-start;}
+  .gearbtn:active{transform:scale(.92);}
+
+  /* ---------- Recommendation cards ---------- */
+  .reco-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:2px 2px 8px;display:flex;align-items:center;gap:6px;}
+  .reco-scroll{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scroll-snap-type:x proximity;}
+  .reco-scroll::-webkit-scrollbar{height:4px;}
+  .reco-card{
+    scroll-snap-align:start; flex:0 0 auto; width:250px; background:linear-gradient(160deg,var(--panel2),var(--panel));
+    border:1px solid var(--border); border-radius:14px; padding:13px; position:relative; overflow:hidden;
+  }
+  .reco-card.urgent{border-color:var(--danger);}
+  .reco-card.good{border-color:var(--cuerpo);}
+  .reco-badge{font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; padding:2px 8px; border-radius:20px; display:inline-block; margin-bottom:6px;}
+  .reco-badge.urgent{background:rgba(248,113,113,.18); color:var(--danger);}
+  .reco-badge.now{background:rgba(250,204,21,.18); color:var(--xp);}
+  .reco-badge.next{background:rgba(96,165,250,.18); color:var(--mente);}
+  .reco-badge.balance{background:rgba(192,132,252,.18); color:var(--creat);}
+  .reco-badge.good{background:rgba(74,222,128,.18); color:var(--cuerpo);}
+  .reco-h{font-size:14px; font-weight:700; margin-bottom:4px;}
+  .reco-why{font-size:11.5px; color:var(--muted); line-height:1.45; margin-bottom:10px;}
+  .reco-go{background:var(--panel3); border:1px solid var(--border); color:var(--text); font-size:12px; padding:6px 10px; border-radius:8px; cursor:pointer; width:100%;}
+  .reco-go:active{transform:scale(.97);}
+
+  /* ---------- Attribute stat rings ---------- */
+  .attrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px;}
+  .attr{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px 12px;}
+  .attr .name{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px;align-items:center;}
+  .attr .name b{color:var(--text);font-size:11.5px;}
+  .attr .bar{height:6px;border-radius:4px;background:#2a2f3d;overflow:hidden;}
+  .attr .bar>div{height:100%;transition:width .4s;}
+  .creat .bar>div{background:var(--creat);} .cuerpo .bar>div{background:var(--cuerpo);}
+  .mente .bar>div{background:var(--mente);} .disc .bar>div{background:var(--disc);}
+
+  /* ---------- Sections / quests ---------- */
+  .section{margin-bottom:14px;}
+  .section h2{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:16px 2px 8px;border-bottom:1px solid var(--border);padding-bottom:6px;display:flex;justify-content:space-between;}
+  .quest{
+    display:flex;align-items:center;gap:12px;background:var(--panel);
+    border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;
+    transition:.2s;
+  }
+  .quest.boss{border-color:#4b3363;background:linear-gradient(90deg,#211c33,var(--panel));position:relative;}
+  .quest.boss::before{content:"👑";position:absolute;top:-8px;left:10px;font-size:12px;}
+  .quest.done{opacity:.5;}
+  .quest.done .qtitle{text-decoration:line-through;}
+  .check{
+    width:30px;height:30px;border-radius:9px;border:2px solid #3a4155;flex-shrink:0;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;color:transparent;
+    transition:transform .15s;
+  }
+  .check:active{transform:scale(.85);}
+  .check.on{background:var(--cuerpo);border-color:var(--cuerpo);color:#0b1a10;}
+  .qbody{flex:1;min-width:0;}
+  .qtitle{font-size:14px;font-weight:600;}
+  .qmeta{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;margin-left:8px;}
+  .tag.creat{background:rgba(192,132,252,.15);color:var(--creat);}
+  .tag.cuerpo{background:rgba(74,222,128,.15);color:var(--cuerpo);}
+  .tag.mente{background:rgba(96,165,250,.15);color:var(--mente);}
+  .tag.disc{background:rgba(249,115,22,.15);color:var(--disc);}
+  .xpval{font-size:12px;font-weight:700;color:var(--xp);white-space:nowrap;}
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    display:flex; background:rgba(15,17,24,.92); backdrop-filter:blur(10px);
+    border-top:1px solid var(--border); padding:6px 6px calc(6px + var(--safe-b));
+  }
+  .navbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px;border-radius:12px;color:var(--muted);font-size:10.5px;cursor:pointer;background:none;border:none;}
+  .navbtn .ic{font-size:19px;}
+  .navbtn.active{color:var(--text);background:var(--panel2);}
+
+  /* ---------- Toast / confetti / modal ---------- */
+  .toast{
+    position:fixed;bottom:calc(88px + var(--safe-b));left:50%;transform:translateX(-50%) translateY(20px);
+    background:#1c2130;border:1px solid var(--gold);color:var(--gold);
+    padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;
+    opacity:0;transition:.35s;pointer-events:none;z-index:80;max-width:88vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
+
+  .modal-back{position:fixed;inset:0;background:rgba(5,6,10,.7);z-index:70;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-back.show{display:flex;}
+  .modal{background:var(--panel2);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:400px;width:100%;max-height:82vh;overflow-y:auto;}
+  .modal h3{margin:0 0 12px;font-size:16px;}
+  .modal .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .modal .row:last-child{border-bottom:none;}
+  .switch{width:42px;height:24px;border-radius:20px;background:#2a2f3d;position:relative;cursor:pointer;flex-shrink:0;}
+  .switch.on{background:var(--cuerpo);}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch.on::after{left:20px;}
+  .modalbtn{width:100%;background:var(--panel3);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:10px;cursor:pointer;font-size:13px;margin-top:8px;}
+  .modalbtn.danger{color:var(--danger);border-color:#4a2b2b;}
+  .modalclose{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;}
+
+  .levelup-overlay{position:fixed;inset:0;background:rgba(5,6,10,.82);z-index:95;display:none;align-items:center;justify-content:center;}
+  .levelup-overlay.show{display:flex;}
+  .levelup-card{text-align:center;animation:popup .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes popup{ 0%{transform:scale(.4);opacity:0;} 60%{transform:scale(1.08);opacity:1;} 100%{transform:scale(1);} }
+  .levelup-card .big{font-size:64px;}
+  .levelup-card h2{margin:6px 0 2px;font-size:26px;color:var(--rank);}
+  .levelup-card p{color:var(--muted);margin:0 0 16px;font-size:13px;}
+
+  /* ---------- Achievements grid ---------- */
+  .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;}
+  .ach{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:10px 6px;text-align:center;font-size:10.5px;color:var(--muted);}
+  .ach.unlocked{border-color:var(--gold);color:var(--text);}
+  .ach .aic{font-size:22px;display:block;margin-bottom:4px;filter:grayscale(1);opacity:.4;}
+  .ach.unlocked .aic{filter:none;opacity:1;}
+
+  /* ---------- Weekly chart ---------- */
+  .weekchart{display:flex;gap:6px;align-items:flex-end;height:100px;margin:10px 0 18px;}
+  .weekchart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .weekchart .barwrap{width:100%;height:70px;background:#20242f;border-radius:6px;display:flex;align-items:flex-end;overflow:hidden;}
+  .weekchart .barfill{width:100%;background:linear-gradient(180deg,var(--cuerpo),#1c6b3f);border-radius:6px 6px 0 0;}
+  .weekchart .lbl{font-size:10px;color:var(--muted);}
+
+  .rewards{display:flex;flex-direction:column;gap:8px;}
+  .reward{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .reward.locked{opacity:.45;}
+  .addrow{display:flex;gap:8px;margin-top:8px;}
+  .addrow input{flex:1;background:#20242f;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;}
+  .addrow button{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;}
+  .claimbtn{background:var(--gold);border:none;color:#2b1d00;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:12px;white-space:nowrap;}
+  .claimbtn:disabled{opacity:.4;}
+
+  h1{font-size:19px;margin:2px 0 3px;letter-spacing:.3px;}
+  .sub{color:var(--muted);font-size:12.5px;margin-bottom:16px;}
+  .info-block{font-size:13px;line-height:1.7;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;}
+  .info-block+.info-block{margin-top:10px;}
+  .info-block h3{margin:0 0 8px;font-size:13px;color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎮 Rutina RPG — Modo Supervivencia Creativa</h1>
+  <div class="sub">Sube de nivel, evoluciona tu personaje y avanza tu proyecto todos los días.</div>
+
+  <div class="hud" id="hud">
+    <div class="avatarzone">
+      <div class="orbit" id="orbit"></div>
+      <div class="lvlbadge" id="lvlbadge" style="--pct:0">
+        <span class="rankicon" id="rankicon">🌱</span>
+        <span class="lvltag" id="lvltag">1</span>
+      </div>
+    </div>
+    <div class="hudinfo">
+      <div class="rankname"><span id="rankname">Novato</span></div>
+      <div class="lvlrow">Nivel <b id="lvltxt">1</b> · XP <b id="xptxt">0</b>/<span id="xpneed">500</span></div>
+      <div class="xpbar"><div id="xpfill" style="width:0%"></div></div>
+      <div class="stats">
+        <div class="pill">🔥 Racha <b id="streaktxt">0</b>d</div>
+        <div class="pill">🏆 Perfectos <b id="perfecttxt">0</b></div>
+        <div class="pill">🪙 <b id="coinstxt">0</b></div>
+      </div>
+    </div>
+    <button class="gearbtn" onclick="openSettings()">⚙️</button>
+  </div>
+
+  <div class="reco-title">📌 Qué hacer primero</div>
+  <div class="reco-scroll" id="recoScroll"></div>
+
+  <div class="attrs">
+    <div class="attr creat"><div class="name"><span>🎬 Creatividad</span><b id="creatlvl">Lv1</b></div><div class="bar"><div id="creatbar" style="width:0%"></div></div></div>
+    <div class="attr cuerpo"><div class="name"><span>💪 Cuerpo</span><b id="cuerpolvl">Lv1</b></div><div class="bar"><div id="cuerpobar" style="width:0%"></div></div></div>
+    <div class="attr mente"><div class="name"><span>🧠 Mente</span><b id="mentelvl">Lv1</b></div><div class="bar"><div id="mentebar" style="width:0%"></div></div></div>
+    <div class="attr disc"><div class="name"><span>⚔️ Disciplina</span><b id="disclvl">Lv1</b></div><div class="bar"><div id="discbar" style="width:0%"></div></div></div>
+  </div>
+
+  <div id="view-quests"></div>
+
+  <div id="view-stats" hidden>
+    <div class="section"><h2>Última semana</h2></div>
+    <div class="weekchart" id="weekchart"></div>
+    <div class="section"><h2>Récords</h2></div>
+    <div class="attrs" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+      <div class="attr" style="border-color:var(--border)"><div class="name"><span>Mejor racha</span></div><div style="font-size:20px;font-weight:700;" id="bestStreakTxt">0</div></div>
+      <div class="attr" style="border-color:var(--border)"><div class="name"><span>Misiones totales</span></div><div style="font-size:20px;font-weight:700;" id="totalQuestsTxt">0</div></div>
+      <div class="attr" style="border-color:var(--border)"><div class="name"><span>XP total ganada</span></div><div style="font-size:20px;font-weight:700;" id="totalXpTxt">0</div></div>
+    </div>
+    <div class="section"><h2>Logros</h2></div>
+    <div class="ach-grid" id="achGrid"></div>
+  </div>
+
+  <div id="view-rewards" hidden>
+    <div class="rewards" id="rewardsList"></div>
+    <div class="addrow">
+      <input id="newReward" placeholder="Nueva recompensa (ej: ver un capítulo)">
+      <button onclick="addReward()">Añadir</button>
+    </div>
+  </div>
+
+  <div id="view-info" hidden>
+    <div class="info-block">
+      <h3>Qué cambió en esta rutina</h3>
+      Se eliminó el bloque de 2h de dropshipping. Las 9h de "Meta Importante" (escribir/grabar/editar/miniatura) se mantienen pero repartidas en 3 misiones (3h + 3h + 2.5h) con micro-pausas internas de 10 min cada ~50 min, en vez de sentarte 3h seguidas. Entre misiones hay descansos reales de 45-60 min, no solo 30. El gym se ubica entre el bloque 2 y 3 como recuperación activa. El curso va después del gym, cuando el foco profundo ya bajó pero aún sirve para tareas ligeras. Lectura y rituales nocturnos cierran el día.<br><br>
+      Si un día tienes más energía, usa el margen libre (~1h20 al final) para extender el Bloque 3 a 3h completas. Si tienes menos energía, no fuerces el bloque completo: hazlo en ciclos de 45/15 en vez de 50/10.
+    </div>
+    <div class="info-block">
+      <h3>Cómo usarla en el celular</h3>
+      Abre este archivo con el navegador de tu teléfono y usa el menú del navegador → <b>"Añadir a pantalla de inicio"</b> (Android: Chrome ⋮ → Añadir a pantalla principal · iPhone: Safari → Compartir → Añadir a inicio). Así se abre como una app, sin barra de direcciones.<br><br>
+      Tu progreso se guarda en este navegador/dispositivo. Si cambias de navegador, usas modo incógnito, o borras datos, se pierde — por eso exporta un respaldo cada tanto desde ⚙️ Ajustes.
+    </div>
+  </div>
+</div>
+
+<nav class="bottomnav">
+  <button class="navbtn active" data-view="quests"><span class="ic">📋</span>Hoy</button>
+  <button class="navbtn" data-view="stats"><span class="ic">📊</span>Stats</button>
+  <button class="navbtn" data-view="rewards"><span class="ic">🎁</span>Recompensas</button>
+  <button class="navbtn" data-view="info"><span class="ic">ℹ️</span>Info</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<div class="levelup-overlay" id="levelupOverlay">
+  <div class="levelup-card">
+    <div class="big" id="levelupIcon">⭐</div>
+    <h2 id="levelupTitle">¡Nivel 2!</h2>
+    <p id="levelupSub">Ahora eres Iniciado</p>
+    <button class="modalbtn" onclick="closeLevelup()" style="width:auto;padding:10px 24px;">Continuar</button>
+  </div>
+</div>
+
+<div class="modal-back" id="settingsBack">
+  <div class="modal">
+    <button class="modalclose" onclick="closeSettings()">✕</button>
+    <h3>⚙️ Ajustes</h3>
+    <div class="row"><span>🔊 Sonido</span><div class="switch" id="soundSwitch" onclick="toggleSound()"></div></div>
+    <div class="row"><span>📳 Vibración</span><div class="switch" id="hapticSwitch" onclick="toggleHaptic()"></div></div>
+    <button class="modalbtn" onclick="exportData()">⬇️ Exportar respaldo</button>
+    <label class="modalbtn" style="display:block;text-align:center;cursor:pointer;">⬆️ Importar respaldo
+      <input type="file" accept="application/json" style="display:none" onchange="importData(event)">
+    </label>
+    <button class="modalbtn" onclick="adjustStreak()">🔧 Ajustar racha manualmente</button>
+    <button class="modalbtn danger" onclick="hardReset()">Reiniciar todo el progreso</button>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "rutina_rpg_waltin_v1";
+
+const QUESTS = [
+  {id:"bed", cat:"disc", time:"8:30", title:"Despertar + Tender la cama", meta:"Rutina de arranque", xp:5},
+  {id:"post_am", cat:"cuerpo", time:"8:35", title:"Mejorar postura/asimetría (mañana)", meta:"Estiramiento 10 min", xp:5},
+  {id:"bath", cat:"cuerpo", time:"8:45", title:"Bañarme", meta:"13 min máx", xp:5},
+  {id:"grat", cat:"mente", time:"9:00", title:"Agradecer (escribir)", meta:"5 min", xp:5},
+  {id:"pray", cat:"mente", time:"9:05", title:"Hablar con Dios", meta:"10 min", xp:5},
+  {id:"break_am", cat:"cuerpo", time:"9:15", title:"Desayunar + salir a caminar", meta:"30 min", xp:10},
+  {id:"block1", cat:"creat", time:"9:45 – 12:45", title:"MISIÓN 1: Escribir / Grabar / Editar / Miniatura", meta:"3h · ciclos de 50 min enfoque / 10 min pausa", xp:50, boss:true},
+  {id:"rest1", cat:"cuerpo", time:"12:45 – 13:30", title:"Descanso largo: comer + siesta", meta:"45 min de recuperación real", xp:10},
+  {id:"med", cat:"mente", time:"13:30", title:"Meditar", meta:"10-20 min, reset mental antes de la misión 2", xp:10},
+  {id:"block2", cat:"creat", time:"13:45 – 16:45", title:"MISIÓN 2: Escribir / Grabar / Editar / Miniatura", meta:"3h · mismo formato de ciclos", xp:50, boss:true},
+  {id:"rest2", cat:"cuerpo", time:"16:45 – 17:15", title:"Descanso corto: paseo / siesta", meta:"30 min", xp:10},
+  {id:"gym", cat:"cuerpo", time:"17:15 – 18:35", title:"Gym", meta:"1h20 · recuperación activa entre misiones", xp:30},
+  {id:"snack", cat:"cuerpo", time:"18:35", title:"Ducha + snack", meta:"15 min", xp:5},
+  {id:"course", cat:"creat", time:"18:50 – 19:20", title:"Tomar un curso / mejorar habilidades artísticas", meta:"30 min · tarea ligera, menos foco requerido", xp:20},
+  {id:"dinner", cat:"cuerpo", time:"19:20 – 20:00", title:"Cena + descanso", meta:"40 min", xp:10},
+  {id:"block3", cat:"creat", time:"20:00 – 22:30", title:"MISIÓN 3: Escribir / Grabar / Editar / Miniatura", meta:"2.5h · si hay energía, extender a 3h", xp:40, boss:true},
+  {id:"read", cat:"mente", time:"22:30", title:"Leer", meta:"30 min", xp:10},
+  {id:"post_pm", cat:"cuerpo", time:"23:00", title:"Mejorar postura/asimetría (noche)", meta:"10 min", xp:5},
+  {id:"noporn", cat:"disc", time:"todo el día", title:"Dejar la pornografía", meta:"Hábito diario — el de mayor peso", xp:15},
+];
+
+const CATS = {creat:"Creatividad", cuerpo:"Cuerpo", mente:"Mente", disc:"Disciplina"};
+
+const CAT_GOAL_FRAME = {
+  creat: "tu proyecto como creador",
+  disc: "tu disciplina base",
+  cuerpo: "tu desarrollo personal",
+  mente: "tu desarrollo personal",
+};
+
+const QUEST_REASONS = {
+  block1: "Tu foco creativo está en su punto más alto en la mañana — adelantar esto es lo que más impulsa tu canal.",
+  block2: "Segunda ventana de foco profundo del día: sigue avanzando contenido mientras el cuerpo ya se recuperó.",
+  block3: "Última misión del día: ciérrala para no perder la racha ni el impulso del proyecto.",
+  gym: "Esta recarga activa sostiene la energía que necesitas para las siguientes misiones de creación.",
+  course: "Invertir en habilidad ahora compone tu crecimiento a largo plazo como creador.",
+  noporn: "Este hábito sostiene tu disciplina base — protégelo antes que cualquier otra cosa hoy.",
+  med: "Resetea tu mente antes de entrar a la próxima misión de creación.",
+  read: "Cierra el día alimentando a Mente sin pantalla de trabajo.",
+};
+
+const RANKS = [
+  {min:1,  max:2,    name:"Novato",              icon:"🌱", color:"#9096a8"},
+  {min:3,  max:4,    name:"Iniciado",            icon:"📘", color:"#60a5fa"},
+  {min:5,  max:7,    name:"Aprendiz Creativo",   icon:"🎬", color:"#4ade80"},
+  {min:8,  max:10,   name:"Guerrero de Contenido", icon:"⚔️", color:"#f97316"},
+  {min:11, max:14,   name:"Maestro Creador",     icon:"🎨", color:"#c084fc"},
+  {min:15, max:19,   name:"Veterano Youtuber",   icon:"🏅", color:"#facc15"},
+  {min:20, max:24,   name:"Leyenda en Ascenso",  icon:"🔥", color:"#fb7185"},
+  {min:25, max:29,   name:"Leyenda",             icon:"👑", color:"#38bdf8"},
+  {min:30, max:99999,name:"Mítico",              icon:"✨", color:"#fbbf24"},
+];
+
+const ACHIEVEMENTS = [
+  {id:"streak7",   test:s=>s.streak>=7,       label:"Racha de 7 días",   icon:"🔥"},
+  {id:"streak14",  test:s=>s.streak>=14,      label:"Racha de 14 días",  icon:"🔥"},
+  {id:"streak30",  test:s=>s.streak>=30,      label:"Racha de 30 días",  icon:"🌋"},
+  {id:"streak60",  test:s=>s.streak>=60,      label:"Racha de 60 días",  icon:"🌋"},
+  {id:"streak100", test:s=>s.streak>=100,     label:"Racha de 100 días", icon:"💎"},
+  {id:"perfect5",  test:s=>s.perfectDays>=5,  label:"5 días perfectos",  icon:"🏆"},
+  {id:"perfect10", test:s=>s.perfectDays>=10, label:"10 días perfectos", icon:"🏆"},
+  {id:"perfect25", test:s=>s.perfectDays>=25, label:"25 días perfectos", icon:"🏆"},
+  {id:"lvl5",  test:s=>s.level>=5,  label:"Nivel 5",  icon:"⭐"},
+  {id:"lvl10", test:s=>s.level>=10, label:"Nivel 10", icon:"⭐"},
+  {id:"lvl20", test:s=>s.level>=20, label:"Nivel 20", icon:"⭐"},
+  {id:"lvl30", test:s=>s.level>=30, label:"Nivel 30 — Mítico", icon:"✨"},
+];
+
+let state = load();
+let currentView = "quests";
+
+function todayStr(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+function isCoreDone(doneObj){
+  return QUESTS.filter(q=>q.boss).every(q=>doneObj[q.id]);
+}
+
+function defaultState(){
+  return {
+    xp:0, coins:0, level:1, streak:0, bestStreak:0, perfectDays:0, lastDate:null,
+    done:{}, attrs:{creat:0,cuerpo:0,mente:0,disc:0},
+    totalQuestsCompleted:0, totalXpEarned:0,
+    achievements:[], history:[],
+    soundOn:true, hapticOn:true,
+    rewards:[
+      {name:"Ver un episodio de una serie", cost:200, timesClaimed:0},
+      {name:"Comida favorita / antojo", cost:350, timesClaimed:0},
+      {name:"Comprar algo pequeño que quieras", cost:600, timesClaimed:0},
+      {name:"Día libre de un bloque (usar con cuidado)", cost:900, timesClaimed:0},
+    ]
+  };
+}
+
+function load(){
+  let raw = localStorage.getItem(STORAGE_KEY);
+  let s = raw ? JSON.parse(raw) : defaultState();
+  const d = defaultState();
+  for(const k in d){ if(s[k] === undefined) s[k] = d[k]; }
+  if(s.coins === undefined) s.coins = s.xp || 0;
+  if(s.bestStreak < s.streak) s.bestStreak = s.streak;
+
+  if(s.lastDate !== todayStr()){
+    if(s.lastDate){
+      const coreDone = isCoreDone(s.done);
+      const allDone = QUESTS.every(q=>s.done[q.id]);
+      const completedCount = QUESTS.filter(q=>s.done[q.id]).length;
+      if(coreDone){ s.streak+=1; s.xp+=30; s.coins+=30; s.totalXpEarned+=30; }
+      else { s.streak = 0; }
+      if(s.streak > s.bestStreak) s.bestStreak = s.streak;
+      if(allDone){ s.perfectDays+=1; s.xp+=20; s.coins+=20; s.totalXpEarned+=20; }
+      s.history.push({date:s.lastDate, coreDone, allDone, completedCount, total:QUESTS.length});
+      if(s.history.length > 30) s.history = s.history.slice(-30);
+    }
+    s.done = {};
+    s.lastDate = todayStr();
+    save(s);
+  }
+  return s;
+}
+function save(s){ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
+
+function xpNeeded(level){ return 500 + (level-1)*150; }
+function attrLevel(v){ return 1 + Math.floor(v/300); }
+function attrProgress(v){ return v % 300; }
+
+function getRank(level){
+  for(let i=0;i<RANKS.length;i++){
+    if(level>=RANKS[i].min && level<=RANKS[i].max) return {...RANKS[i], index:i};
+  }
+  return {...RANKS[RANKS.length-1], index:RANKS.length-1};
+}
+
+function parseHM(str){
+  const [h,m] = str.trim().split(':').map(Number);
+  return h*60+(m||0);
+}
+function parseWindow(timeStr){
+  if(timeStr === "todo el día") return {allday:true};
+  if(timeStr.includes('–')){
+    const [a,b] = timeStr.split('–').map(x=>x.trim());
+    return {start:parseHM(a), end:parseHM(b)};
+  }
+  const start = parseHM(timeStr);
+  return {start, end:start+45};
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function vibrate(pattern){
+  if(state.hapticOn && navigator.vibrate) navigator.vibrate(pattern);
+}
+
+function beep(freq, dur){
+  if(!state.soundOn) return;
+  try{
+    const ctx = beep._ctx || (beep._ctx = new (window.AudioContext||window.webkitAudioContext)());
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type='sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+/* ---------- confetti ---------- */
+const confettiCanvas = document.getElementById('confetti');
+const ctx2d = confettiCanvas.getContext('2d');
+function resizeCanvas(){ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+let particles = [];
+function fireConfetti(color){
+  const cx = innerWidth/2, cy = innerHeight*0.35;
+  for(let i=0;i<50;i++){
+    const angle = Math.random()*Math.PI*2;
+    const speed = 3+Math.random()*6;
+    particles.push({
+      x:cx, y:cy, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed - 2,
+      life:60+Math.random()*30, color: color || ['#facc15','#f97316','#c084fc','#4ade80','#60a5fa'][i%5],
+      size:3+Math.random()*4
+    });
+  }
+  if(!fireConfetti._running){
+    fireConfetti._running = true;
+    requestAnimationFrame(tickConfetti);
+  }
+}
+function tickConfetti(){
+  ctx2d.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  particles.forEach(p=>{
+    p.vy += 0.15; p.x += p.vx; p.y += p.vy; p.life -= 1;
+    ctx2d.globalAlpha = Math.max(0, p.life/90);
+    ctx2d.fillStyle = p.color;
+    ctx2d.fillRect(p.x, p.y, p.size, p.size);
+  });
+  particles = particles.filter(p=>p.life>0);
+  if(particles.length){ requestAnimationFrame(tickConfetti); }
+  else { fireConfetti._running = false; ctx2d.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+}
+
+/* ---------- level up modal ---------- */
+function showLevelup(level){
+  const rank = getRank(level);
+  document.getElementById('levelupIcon').textContent = rank.icon;
+  document.getElementById('levelupTitle').textContent = "¡Nivel "+level+"!";
+  document.getElementById('levelupSub').textContent = "Ahora eres "+rank.name;
+  document.getElementById('levelupOverlay').classList.add('show');
+  fireConfetti(rank.color);
+  beep(880, .18);
+  vibrate([30,40,30]);
+}
+function closeLevelup(){
+  document.getElementById('levelupOverlay').classList.remove('show');
+}
+
+/* ---------- achievements ---------- */
+function checkAchievements(){
+  const fresh = [];
+  ACHIEVEMENTS.forEach(a=>{
+    if(a.test(state) && !state.achievements.includes(a.id)){
+      state.achievements.push(a.id);
+      fresh.push(a);
+    }
+  });
+  if(fresh.length){
+    save(state);
+    fresh.forEach((a,i)=>{
+      setTimeout(()=>{ toast("🏅 Logro desbloqueado: "+a.label); fireConfetti(); beep(660,.15); }, i*900);
+    });
+  }
+}
+
+/* ---------- actions ---------- */
+function toggle(id){
+  const q = QUESTS.find(x=>x.id===id);
+  const wasDone = !!state.done[id];
+  state.done[id] = !wasDone;
+  if(!wasDone){
+    state.xp += q.xp;
+    state.coins += q.xp;
+    state.attrs[q.cat] += q.xp;
+    state.totalQuestsCompleted += 1;
+    state.totalXpEarned += q.xp;
+    vibrate(15);
+    beep(520,.1);
+    let leveledUp = false, newLevel = state.level;
+    while(state.xp >= xpNeeded(state.level)){
+      state.xp -= xpNeeded(state.level);
+      state.level += 1;
+      leveledUp = true; newLevel = state.level;
+    }
+    if(leveledUp){ save(state); showLevelup(newLevel); }
+    else if(q.boss) toast("✅ Misión completada: +"+q.xp+" XP");
+    else toast("+"+q.xp+" XP");
+  } else {
+    state.xp -= q.xp;
+    state.coins -= q.xp;
+    state.attrs[q.cat] -= q.xp;
+    state.totalQuestsCompleted -= 1;
+    state.totalXpEarned -= q.xp;
+    if(state.xp < 0){ state.xp=0; }
+    if(state.coins < 0){ state.coins=0; }
+  }
+  save(state);
+  checkAchievements();
+  render();
+}
+
+function addReward(){
+  const inp = document.getElementById('newReward');
+  const v = inp.value.trim();
+  if(!v) return;
+  state.rewards.push({name:v, cost:250, timesClaimed:0});
+  inp.value='';
+  save(state); render();
+}
+function claim(i){
+  const r = state.rewards[i];
+  if(state.coins < r.cost){ toast("Te faltan "+(r.cost-state.coins)+" XP para esta recompensa"); return; }
+  state.coins -= r.cost;
+  r.timesClaimed += 1;
+  toast("🎁 Reclamaste: "+r.name);
+  fireConfetti();
+  save(state); render();
+}
+function hardReset(){
+  if(!confirm("¿Reiniciar todo el progreso (nivel, XP, rachas, atributos, logros)?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = load();
+  closeSettings();
+  render();
+}
+
+function adjustStreak(){
+  const v = prompt("¿Cuántos días de racha quieres poner? (racha actual: "+state.streak+")", state.streak);
+  if(v===null) return;
+  const n = parseInt(v,10);
+  if(isNaN(n) || n<0){ toast("Número inválido"); return; }
+  state.streak = n;
+  if(n > state.bestStreak) state.bestStreak = n;
+  save(state); render();
+  toast("Racha ajustada a "+n+" días");
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "rutina_respaldo_"+todayStr()+".json";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("📥 Respaldo descargado");
+}
+
+function importData(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    try{
+      const parsed = JSON.parse(ev.target.result);
+      const d = defaultState();
+      for(const k in d){ if(parsed[k] === undefined) parsed[k] = d[k]; }
+      state = parsed;
+      save(state);
+      render();
+      toast("✅ Progreso restaurado");
+    }catch(err){
+      toast("⚠️ Ese archivo no es un respaldo válido");
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = "";
+}
+
+function openSettings(){
+  document.getElementById('soundSwitch').classList.toggle('on', state.soundOn);
+  document.getElementById('hapticSwitch').classList.toggle('on', state.hapticOn);
+  document.getElementById('settingsBack').classList.add('show');
+}
+function closeSettings(){ document.getElementById('settingsBack').classList.remove('show'); }
+function toggleSound(){ state.soundOn = !state.soundOn; save(state); document.getElementById('soundSwitch').classList.toggle('on', state.soundOn); if(state.soundOn) beep(520,.1); }
+function toggleHaptic(){ state.hapticOn = !state.hapticOn; save(state); document.getElementById('hapticSwitch').classList.toggle('on', state.hapticOn); if(state.hapticOn) vibrate(15); }
+
+/* ---------- recommendations ---------- */
+function buildRecommendations(){
+  const now = new Date();
+  const nowMin = now.getHours()*60 + now.getMinutes();
+  const cards = [];
+
+  const weakestCat = Object.keys(state.attrs).reduce((a,b)=> attrLevel(state.attrs[a]) <= attrLevel(state.attrs[b]) ? a : b);
+
+  const pending = QUESTS.filter(q => !state.done[q.id]).map(q=>{
+    const win = parseWindow(q.time);
+    let score = 0, badge = "next";
+    if(win.allday){
+      score = (nowMin >= 20*60) ? 95 : 35;
+      badge = (nowMin >= 20*60) ? "urgent" : "next";
+    } else if(win.end < nowMin){
+      score = q.boss ? 100 : 60;
+      badge = "urgent";
+    } else if(win.start <= nowMin && nowMin <= win.end){
+      score = q.boss ? 90 : 70;
+      badge = "now";
+    } else {
+      score = 50 - Math.min(49, (win.start-nowMin)/10);
+      badge = "next";
+    }
+    if(q.cat === weakestCat) score += 8;
+    return {q, win, score, badge};
+  });
+
+  pending.sort((a,b)=> b.score - a.score || (a.win.start||0)-(b.win.start||0));
+
+  const top = pending.slice(0,3);
+  top.forEach(item=>{
+    const reason = QUEST_REASONS[item.q.id] || ("Avanza "+CAT_GOAL_FRAME[item.q.cat]+" marcando esta misión ahora.");
+    cards.push({
+      badge: item.badge,
+      badgeLabel: item.badge==='urgent' ? 'Urgente' : item.badge==='now' ? 'Ahora' : 'Sigue',
+      title: item.q.title,
+      why: reason,
+      qid: item.q.id
+    });
+  });
+
+  if(!cards.length){
+    cards.push({badge:'good', badgeLabel:'Completo', title:'Misiones principales completas 🎉', why:'Cualquier extra de hoy es bonus para tu progreso. Aprovecha para descansar bien o adelantar algo del proyecto.', qid:null});
+  }
+  return cards;
+}
+
+/* ---------- render ---------- */
+function render(){
+  const rank = getRank(state.level);
+  document.documentElement.style.setProperty('--rank', rank.color);
+  document.getElementById('hud').classList.toggle('mythic', rank.index === RANKS.length-1);
+  document.getElementById('rankicon').textContent = rank.icon;
+  document.getElementById('rankname').textContent = rank.icon+" "+rank.name;
+  document.getElementById('lvltag').textContent = state.level;
+  document.getElementById('lvltxt').textContent = state.level;
+  document.getElementById('xptxt').textContent = state.xp;
+  const need = xpNeeded(state.level);
+  document.getElementById('xpneed').textContent = need;
+  document.getElementById('xpfill').style.width = Math.min(100,(state.xp/need*100))+'%';
+  document.getElementById('lvlbadge').style.setProperty('--pct', Math.min(100,(state.xp/need*100)));
+  const avSize = 64 + rank.index*3;
+  document.getElementById('lvlbadge').style.setProperty('--avsize', avSize+'px');
+  document.getElementById('streaktxt').textContent = state.streak;
+  document.getElementById('perfecttxt').textContent = state.perfectDays;
+  document.getElementById('coinstxt').textContent = state.coins;
+
+  const orbit = document.getElementById('orbit');
+  const dotCount = Math.min(10, 2+rank.index);
+  orbit.innerHTML = '';
+  for(let i=0;i<dotCount;i++){
+    const ang = (360/dotCount)*i;
+    const d = document.createElement('div');
+    d.className='orbit-dot';
+    d.style.transform = `rotate(${ang}deg) translate(45px) rotate(-${ang}deg)`;
+    orbit.appendChild(d);
+  }
+
+  ['creat','cuerpo','mente','disc'].forEach(c=>{
+    const lvl = attrLevel(state.attrs[c]);
+    document.getElementById(c+'lvl').textContent = 'Lv'+lvl;
+    const pct = (attrProgress(state.attrs[c])/300)*100;
+    document.getElementById(c+'bar').style.width = pct+'%';
+  });
+
+  const recoCards = buildRecommendations();
+  document.getElementById('recoScroll').innerHTML = recoCards.map(c=>`
+    <div class="reco-card ${c.badge}">
+      <span class="reco-badge ${c.badge}">${c.badgeLabel}</span>
+      <div class="reco-h">${c.title}</div>
+      <div class="reco-why">${c.why}</div>
+      ${c.qid ? `<button class="reco-go" onclick="toggle('${c.qid}')">Marcar como hecho</button>` : ''}
+    </div>
+  `).join('');
+
+  const sections = [
+    ["Mañana", ["bed","post_am","bath","grat","pray","break_am"]],
+    ["Misión 1", ["block1"]],
+    ["Descanso", ["rest1","med"]],
+    ["Misión 2", ["block2"]],
+    ["Tarde", ["rest2","gym","snack","course","dinner"]],
+    ["Misión 3", ["block3"]],
+    ["Noche", ["read","post_pm"]],
+    ["Hábito de fondo", ["noporn"]],
+  ];
+  let html = '';
+  sections.forEach(([label, ids])=>{
+    html += `<div class="section"><h2>${label}</h2>`;
+    ids.forEach(id=>{
+      const q = QUESTS.find(x=>x.id===id);
+      const on = !!state.done[id];
+      html += `<div class="quest ${q.boss?'boss':''} ${on?'done':''}">
+        <div class="check ${on?'on':''}" onclick="toggle('${id}')">${on?'✓':''}</div>
+        <div class="qbody">
+          <div class="qtitle">${q.title}<span class="tag ${q.cat}">${CATS[q.cat]}</span></div>
+          <div class="qmeta">${q.time} · ${q.meta}</div>
+        </div>
+        <div class="xpval">+${q.xp} XP</div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById('view-quests').innerHTML = html;
+
+  let rhtml = `<div class="pill" style="margin-bottom:10px;display:inline-block">🪙 XP disponible para gastar: <b>${state.coins}</b></div>`;
+  state.rewards.forEach((r,i)=>{
+    const unlocked = state.coins >= r.cost;
+    rhtml += `<div class="reward ${unlocked?'':'locked'}">
+      <div><b>${r.name}</b><div class="qmeta">Costo: ${r.cost} XP ${r.timesClaimed?('· reclamada '+r.timesClaimed+' vez/veces'):''}</div></div>
+      <button class="claimbtn" onclick="claim(${i})" ${unlocked?'':'disabled'}>Reclamar</button>
+    </div>`;
+  });
+  document.getElementById('rewardsList').innerHTML = rhtml;
+
+  document.getElementById('bestStreakTxt').textContent = state.bestStreak;
+  document.getElementById('totalQuestsTxt').textContent = state.totalQuestsCompleted;
+  document.getElementById('totalXpTxt').textContent = state.totalXpEarned;
+
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const last7 = state.history.slice(-7);
+  document.getElementById('weekchart').innerHTML = last7.length
+    ? last7.map(h=>{
+        const pct = Math.round((h.completedCount/h.total)*100);
+        const dow = days[new Date(h.date+'T12:00:00').getDay()];
+        return `<div class="col"><div class="barwrap"><div class="barfill" style="height:${pct}%"></div></div><div class="lbl">${dow}</div></div>`;
+      }).join('')
+    : `<div class="qmeta" style="padding:20px 0;">Aún no hay historial — vuelve mañana para ver tu primer día registrado.</div>`;
+
+  document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a=>{
+    const unlocked = state.achievements.includes(a.id);
+    return `<div class="ach ${unlocked?'unlocked':''}"><span class="aic">${a.icon}</span>${a.label}</div>`;
+  }).join('');
+}
+
+document.querySelectorAll('.navbtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentView = btn.dataset.view;
+    ['quests','stats','rewards','info'].forEach(name=>{
+      document.getElementById('view-'+name).hidden = (name!==currentView);
+    });
+  });
+});
+
+render();
+setInterval(render, 60000);
+</script>
+</body>
+</html>
