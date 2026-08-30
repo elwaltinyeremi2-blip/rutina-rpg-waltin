@@ -987,7 +987,11 @@ function importData(evt){
     try{
       const p = JSON.parse(e.target.result);
       const d = defaultState();
+      /* Misma migración aditiva que load(): un respaldo viejo o parcial no debe
+         dejar campos a medias (p.ej. un atributo en undefined -> NaN en cascada). */
       for(const k in d){ if(p[k] === undefined) p[k] = d[k]; }
+      for(const k in d.attrs){ if(p.attrs[k] === undefined) p.attrs[k] = 0; }
+      if(p.bestStreak < p.streak) p.bestStreak = p.streak;
       state = p; save(); render(); closeSettings();
       toast("✅ Progreso restaurado");
     }catch(err){ toast("⚠️ Archivo inválido"); }
