@@ -1,0 +1,21 @@
+{
+  "name": "rutina-rpg-waltin",
+  "version": "1.0.0",
+  "description": "Rutina RPG de Waltin como aplicacion de escritorio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "exe": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.waltin.rutinarpg",
+    "productName": "Rutina RPG",
+    "directories": { "output": "salida" },
+    "files": ["main.js", "package.json"],
+    "win": { "target": "portable" }
+  }
+}

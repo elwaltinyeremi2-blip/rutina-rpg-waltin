@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rutina RPG">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f1117'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <title>Rutina RPG — Waltin</title>
 <style>
@@ -21,7 +22,9 @@
     --safe-t: env(safe-area-inset-top, 0px);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html{-webkit-text-size-adjust:100%;}
+  /* El fondo también en <html>: si no, al hacer "rubber band" en iPhone
+     (arrastrar más allá del final) aparece una franja blanca. */
+  html{-webkit-text-size-adjust:100%; background:#0b0d13;}
   body{
     margin:0; min-height:100%;
     background:
@@ -82,6 +85,18 @@
   .xpbar>div{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--rank),#fff6c9);transition:width .6s cubic-bezier(.2,.9,.3,1);box-shadow:0 0 12px color-mix(in srgb,var(--rank) 60%,transparent);}
   .quote{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:9px;line-height:1.4;}
 
+  /* ============ MULTIPLICADOR ============ */
+  .multrow{display:flex;align-items:center;gap:8px;margin-top:9px;}
+  .multbadge{
+    font-size:15px;font-weight:900;letter-spacing:.5px;padding:4px 11px;border-radius:11px;
+    background:linear-gradient(135deg,rgba(251,113,55,.28),rgba(250,204,21,.22));
+    border:1px solid color-mix(in srgb,var(--fire) 55%,var(--border));color:#ffd9a1;flex-shrink:0;
+    text-shadow:0 0 12px rgba(251,113,55,.7);
+  }
+  .multbadge.hot{animation:multpulse 1.6s ease-in-out infinite;}
+  @keyframes multpulse{0%,100%{transform:scale(1);box-shadow:0 0 0 rgba(251,113,55,0);}50%{transform:scale(1.06);box-shadow:0 0 18px rgba(251,113,55,.55);}}
+  .multdetail{font-size:10px;color:var(--muted);line-height:1.35;}
+
   /* ============ TARJETAS DE ESTADO ============ */
   .statrow{display:grid;grid-template-columns:1.35fr 1fr;gap:10px;margin-bottom:14px;}
   .card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:13px;position:relative;overflow:hidden;}
@@ -97,6 +112,7 @@
   .streakstate{font-size:11px;margin-top:9px;line-height:1.35;padding-top:9px;border-top:1px solid var(--border);}
   .streakstate.ok{color:var(--cuerpo);font-weight:600;}
   .streakstate.wait{color:var(--muted);}
+  .shieldrow{font-size:10.5px;color:var(--mente);margin-top:6px;font-weight:600;}
 
   .ringcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
   .ring{position:relative;width:78px;height:78px;}
@@ -105,6 +121,20 @@
   .ring .rbig{font-size:17px;font-weight:800;line-height:1;}
   .ring .rsml{font-size:9px;color:var(--muted);margin-top:2px;}
   .ringlbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+  .ringextra{font-size:9.5px;color:var(--creat);font-weight:700;}
+
+  /* ============ DESAFÍO DEL DÍA ============ */
+  .challenge{
+    background:linear-gradient(140deg,rgba(192,132,252,.16),var(--panel));
+    border:1px solid color-mix(in srgb,var(--creat) 45%,var(--border));
+    border-radius:18px;padding:13px 15px;margin-bottom:16px;display:flex;gap:12px;align-items:center;
+  }
+  .challenge.done{border-color:color-mix(in srgb,var(--cuerpo) 55%,var(--border));background:linear-gradient(140deg,rgba(74,222,128,.14),var(--panel));}
+  .challenge .cic{font-size:27px;flex-shrink:0;}
+  .challenge .ct{font-size:9.5px;text-transform:uppercase;letter-spacing:1px;color:var(--creat);font-weight:800;}
+  .challenge.done .ct{color:var(--cuerpo);}
+  .challenge .cd{font-size:13px;font-weight:700;margin-top:3px;line-height:1.35;}
+  .challenge .cx{font-size:11px;color:var(--muted);margin-top:3px;}
 
   /* ============ RECOMENDACIONES ============ */
   .sechead{font-size:11px;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin:0 2px 9px;font-weight:700;}
@@ -153,10 +183,10 @@
   .quest:active{transform:scale(.985);}
   .quest.boss{border-color:color-mix(in srgb,var(--creat) 35%,var(--border));background:linear-gradient(100deg,rgba(192,132,252,.10),var(--panel));}
   .quest.keystone{border-color:color-mix(in srgb,var(--fire) 50%,var(--border));background:linear-gradient(100deg,rgba(251,113,55,.14),var(--panel));}
+  .quest.payday{border-color:color-mix(in srgb,var(--gold) 60%,var(--border));background:linear-gradient(100deg,rgba(251,191,36,.16),var(--panel));box-shadow:0 0 22px rgba(251,191,36,.10) inset;}
+  .quest.extra{border-style:dashed;}
   .quest.done{opacity:.42;}
   .quest.done .qtitle{text-decoration:line-through;text-decoration-thickness:1.5px;}
-  .quest.pop{animation:qpop .45s cubic-bezier(.2,1.5,.4,1);}
-  @keyframes qpop{0%{transform:scale(1);}45%{transform:scale(1.035);}100%{transform:scale(1);}}
   .check{
     width:32px;height:32px;border-radius:11px;border:2px solid #3d4557;flex-shrink:0;cursor:pointer;
     display:flex;align-items:center;justify-content:center;font-size:17px;color:transparent;
@@ -173,7 +203,17 @@
   .tag.mente{background:rgba(96,165,250,.16);color:var(--mente);}
   .tag.disc{background:rgba(249,115,22,.16);color:var(--disc);}
   .keypill{display:inline-block;background:rgba(251,113,55,.2);color:var(--fire);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:1px;}
+  .goldpill{display:inline-block;background:rgba(251,191,36,.22);color:var(--gold);font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:20px;margin-left:6px;vertical-align:1px;}
+  .qright{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
   .xpval{font-size:12px;font-weight:800;color:var(--xp);white-space:nowrap;}
+  .focusbtn{background:var(--panel3);border:1px solid color-mix(in srgb,var(--creat) 40%,var(--border));color:var(--text);font-size:10px;font-weight:700;padding:5px 8px;border-radius:9px;cursor:pointer;white-space:nowrap;}
+  .focusbtn:active{transform:scale(.94);}
+  .chainbar{display:flex;gap:8px;margin:2px 0 14px;}
+  .chainpill{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:9px 10px;text-align:center;}
+  .chainpill.on{border-color:var(--gold);background:linear-gradient(150deg,rgba(251,191,36,.16),var(--panel));}
+  .chainpill .cn{font-size:11px;font-weight:800;}
+  .chainpill .cv{font-size:10px;color:var(--muted);margin-top:2px;}
+  .chainpill.on .cv{color:var(--gold);}
 
   /* ============ NAV ============ */
   .bottomnav{
@@ -195,6 +235,9 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:90;}
+  #flash{position:fixed;inset:0;pointer-events:none;z-index:88;opacity:0;background:radial-gradient(circle at 50% 40%, rgba(251,191,36,.45), transparent 60%);}
+  #flash.go{animation:flashgo .8s ease-out;}
+  @keyframes flashgo{0%{opacity:0;}18%{opacity:1;}100%{opacity:0;}}
   .xpfloat{position:fixed;z-index:85;pointer-events:none;font-weight:900;font-size:16px;color:var(--xp);text-shadow:0 2px 8px rgba(0,0,0,.7);animation:xpup 1s ease-out forwards;}
   @keyframes xpup{0%{opacity:1;transform:translateY(0) scale(.8);}25%{transform:translateY(-14px) scale(1.15);}100%{opacity:0;transform:translateY(-52px) scale(1);}}
 
@@ -224,11 +267,24 @@
   .lvgain{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:9px 12px;font-size:12px;display:flex;justify-content:space-between;}
   .lvgain b{color:var(--cuerpo);}
 
+  /* ============ TEMPORIZADOR DE FOCO ============ */
+  .focus-overlay{position:fixed;inset:0;background:rgba(5,6,10,.92);z-index:94;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px);}
+  .focus-overlay.show{display:flex;}
+  .focus-card{text-align:center;max-width:330px;width:100%;}
+  .focus-card .fkick{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:700;}
+  .focus-time{font-size:64px;font-weight:900;letter-spacing:1px;margin:6px 0 2px;color:var(--rank);text-shadow:0 0 30px color-mix(in srgb,var(--rank) 45%,transparent);font-variant-numeric:tabular-nums;}
+  .focus-sub{font-size:12.5px;color:var(--muted);line-height:1.55;margin-bottom:18px;}
+
   /* ============ STATS ============ */
   .heat{display:flex;gap:5px;margin:4px 0 18px;}
   .heat .hcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
   .heat .hbox{width:100%;aspect-ratio:1;border-radius:9px;background:#202634;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;}
   .heat .hlbl{font-size:9.5px;color:var(--muted);}
+  .weekbox{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:16px;}
+  .weekbox .wt{font-size:12.5px;font-weight:700;display:flex;justify-content:space-between;margin-bottom:9px;}
+  .weekbox .wt b{color:var(--fire);}
+  .weekbar{height:10px;border-radius:7px;background:#252b3a;overflow:hidden;}
+  .weekbar>div{height:100%;border-radius:7px;background:linear-gradient(90deg,var(--fire),var(--gold));transition:width .6s;}
   .recgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:6px;}
   .recbox{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px;}
   .recbox .rl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
@@ -239,6 +295,25 @@
   .ach .aic{font-size:23px;display:block;margin-bottom:5px;filter:grayscale(1);opacity:.3;}
   .ach.unlocked .aic{filter:none;opacity:1;}
 
+  /* ============ TIENDA ============ */
+  .coinbar{
+    background:linear-gradient(140deg,rgba(251,191,36,.18),var(--panel));
+    border:1px solid color-mix(in srgb,var(--gold) 45%,var(--border));
+    border-radius:18px;padding:14px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .coinbar .cl{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;}
+  .coinbar .cv{font-size:28px;font-weight:900;color:var(--gold);line-height:1.1;}
+  .shopgrid{display:flex;flex-direction:column;gap:9px;margin-bottom:8px;}
+  .shopitem{background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 14px;display:flex;gap:12px;align-items:center;}
+  .shopitem.owned{border-color:var(--cuerpo);}
+  .shopitem.equipped{border-color:var(--gold);background:linear-gradient(140deg,rgba(251,191,36,.12),var(--panel));}
+  .shopitem .sic{font-size:26px;flex-shrink:0;}
+  .shopitem .sb{flex:1;min-width:0;}
+  .shopitem .sn{font-size:13px;font-weight:700;}
+  .shopitem .sd{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45;}
+  .buybtn{background:linear-gradient(135deg,var(--gold),#f59e0b);border:none;color:#2b1d00;font-weight:800;padding:9px 14px;border-radius:11px;cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;}
+  .buybtn:disabled{opacity:.35;background:var(--panel3);color:var(--muted);}
+  .buybtn.alt{background:var(--panel3);color:var(--text);border:1px solid var(--border);}
   .rewards{display:flex;flex-direction:column;gap:9px;}
   .reward{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
   .reward.locked{opacity:.45;}
@@ -274,8 +349,12 @@
     <div class="heroinfo">
       <div class="rankname" id="rankname">Novato</div>
       <div class="ranksub" id="ranksub">Nivel 1</div>
-      <div class="xprow"><span>XP</span><span><b id="xptxt">0</b> / <span id="xpneed">500</span></span></div>
+      <div class="xprow"><span>XP</span><span><b id="xptxt">0</b> / <span id="xpneed">120</span></span></div>
       <div class="xpbar"><div id="xpfill" style="width:0%"></div></div>
+      <div class="multrow">
+        <span class="multbadge" id="multBadge">x1.00</span>
+        <span class="multdetail" id="multDetail"></span>
+      </div>
       <div class="quote" id="quote"></div>
     </div>
   </div>
@@ -291,6 +370,7 @@
         </div>
       </div>
       <div class="streakstate" id="streakstate"></div>
+      <div class="shieldrow" id="shieldRow" hidden></div>
     </div>
 
     <div class="card ringcard">
@@ -307,11 +387,17 @@
         <div class="rtxt"><div class="rbig" id="ringBig">0</div><div class="rsml" id="ringSml">de 19</div></div>
       </div>
       <div class="ringlbl">hoy</div>
+      <div class="ringextra" id="ringExtra"></div>
     </div>
   </div>
 
   <!-- ===== VISTAS ===== -->
   <div id="view-quests">
+    <div class="challenge" id="challengeCard"></div>
+
+    <div class="sechead">⚔️ Cadena de jefes de hoy</div>
+    <div class="chainbar" id="chainBar"></div>
+
     <div class="sechead">📌 Qué hacer ahora</div>
     <div class="reco-scroll" id="recoScroll"></div>
 
@@ -319,9 +405,17 @@
     <div class="attrs" id="attrsBox"></div>
 
     <div id="questList"></div>
+
+    <div class="sechead" style="margin-top:22px;">🎯 Misiones extra (opcionales · XP puro)</div>
+    <div id="extraList"></div>
   </div>
 
   <div id="view-stats" hidden>
+    <div class="sechead">🔥 Semana en curso</div>
+    <div class="weekbox">
+      <div class="wt"><span>Días con MISIÓN 1</span><b id="weekTxt">0 / 7</b></div>
+      <div class="weekbar"><div id="weekBar" style="width:0%"></div></div>
+    </div>
     <div class="sechead">🗓️ Últimos 7 días</div>
     <div class="heat" id="heat"></div>
     <div class="sechead">🏅 Récords</div>
@@ -330,13 +424,26 @@
       <div class="recbox"><div class="rl">Días perfectos</div><div class="rv" id="perfectTxt">0</div></div>
       <div class="recbox"><div class="rl">Misiones hechas</div><div class="rv" id="totalQuestsTxt">0</div></div>
       <div class="recbox"><div class="rl">XP total</div><div class="rv" id="totalXpTxt">0</div></div>
+      <div class="recbox"><div class="rl">Ciclos de foco</div><div class="rv" id="cyclesTxt">0</div></div>
+      <div class="recbox"><div class="rl">Multiplicador récord</div><div class="rv" id="bestMultTxt">x1.00</div></div>
     </div>
     <div class="sechead" style="margin-top:20px;">🏆 Logros</div>
     <div class="ach-grid" id="achGrid"></div>
   </div>
 
-  <div id="view-rewards" hidden>
-    <div class="sechead">🪙 Monedas disponibles: <span id="coinsTxt">0</span></div>
+  <div id="view-shop" hidden>
+    <div class="coinbar">
+      <div><div class="cl">Monedas</div><div class="cv" id="coinsTxt">0</div></div>
+      <div style="font-size:34px;">🪙</div>
+    </div>
+
+    <div class="sechead">⚡ Poderes</div>
+    <div class="shopgrid" id="shopPowers"></div>
+
+    <div class="sechead" style="margin-top:20px;">🎨 Auras del personaje</div>
+    <div class="shopgrid" id="shopSkins"></div>
+
+    <div class="sechead" style="margin-top:20px;">🎁 Recompensas de la vida real</div>
     <div class="rewards" id="rewardsList"></div>
     <div class="addrow">
       <input id="newReward" placeholder="Nueva recompensa…">
@@ -346,14 +453,43 @@
 
   <div id="view-info" hidden>
     <div class="info-block">
+      <h3>⚡ El multiplicador de XP</h3>
+      Todo lo que marcas se multiplica. El multiplicador sube por dos cosas:<br><br>
+      · <b>Racha</b>: +2% por cada día seguido (máximo +50% con 25 días).<br>
+      · <b>Combo del día</b>: +2% por cada misión que ya marcaste hoy (máximo +30%).<br>
+      · <b>Doble XP</b> (se compra en la tienda): +100% el resto del día.<br><br>
+      Traducción: las misiones de la noche valen mucho más que las de la mañana, y una racha larga hace que cada día valga casi el doble. <b>Nunca conviene romper la racha.</b>
+    </div>
+    <div class="info-block">
+      <h3>⚔️ La cadena de jefes (y por qué la MISIÓN 2 es la que más paga)</h3>
+      Las 3 misiones grandes ya no son solo XP suelta. Encadenarlas paga aparte:<br><br>
+      · <b>MISIÓN 2</b> sola: 60 XP + <b>Segundo Aliento (+40)</b>. Es el bloque más duro del día y ahora es el mejor pagado.<br>
+      · <b>MISIÓN 1 + 2</b>: bono <b>Doble Jefe (+60)</b>.<br>
+      · <b>Las 3</b>: bono <b>Triple Jefe (+120)</b> con pantalla dorada.<br><br>
+      Todo eso también se multiplica. Un día con las 3 misiones y racha larga vale más del doble que un día a medias.
+    </div>
+    <div class="info-block">
+      <h3>🎯 Temporizador de foco 50/10</h3>
+      En cada MISIÓN grande tienes un botón <b>🎯 Foco</b>. Arranca 50 minutos de trabajo y luego 10 de pausa.<br><br>
+      Cada ciclo completado te da <b>+15 XP</b> (también multiplicados). Sirve para lo de siempre: un bloque de 3 horas asusta, uno de 50 minutos no. El temporizador sigue corriendo aunque cierres la app.
+    </div>
+    <div class="info-block">
       <h3>🔥 Cómo funciona la racha</h3>
       La racha sube <b>en el momento exacto</b> en que marcas la <b>MISIÓN 1</b> (el primer bloque de trabajo del día). No tienes que esperar al día siguiente ni completar todo lo demás.<br><br>
-      Si un día no marcas la MISIÓN 1, la racha vuelve a 0 al día siguiente. Todo lo demás (gym, leer, meditar…) suma XP y sube tus atributos, pero <b>no rompe la racha</b> si te lo saltas.
+      Si un día no marcas la MISIÓN 1, la racha vuelve a 0 al día siguiente — <b>a menos que tengas un Escudo de Racha</b> comprado en la tienda: se consume solo y te salva ese día. Todo lo demás (gym, leer, meditar…) suma XP y sube tus atributos, pero no rompe la racha si te lo saltas.
+    </div>
+    <div class="info-block">
+      <h3>🛒 La tienda</h3>
+      Cada XP que ganas es también una moneda. Con monedas compras:<br><br>
+      · <b>🛡️ Escudo de Racha</b> — te salva un día malo (máximo 3 guardados).<br>
+      · <b>⚡ Doble XP</b> — x2 todo lo que marques el resto del día.<br>
+      · <b>🎨 Auras</b> — cambian el color de tu personaje para siempre. Puras ganas de coleccionar.<br>
+      · <b>🎁 Recompensas reales</b> — las tuyas, de la vida real. Puedes añadir las que quieras.
     </div>
     <div class="info-block">
       <h3>🏆 36 rangos hasta el nivel 1000</h3>
-      Empiezas en <b>Novato</b> y el camino llega hasta el <b>nivel 1000 — "EL MIL"</b>, pasando por 36 rangos distintos: Guerrero de Contenido, Cronista, Centurión, Titán del Trabajo, Arquitecto de Imperios, Oráculo, Inmortal, Celestial… Cada rango tiene su propio color, su lema y equipo nuevo para el personaje.<br><br>
-      Un día completo da <b>300 XP</b> (325 si lo haces perfecto). Los primeros niveles caen rápido; a partir del 100 cada uno cuesta más. Llegar al 1000 son <b>años de trabajo real</b> — cuando llegues, avísame y abrimos el siguiente tramo.
+      Empiezas en <b>Novato</b> y el camino llega hasta el <b>nivel 1000 — "EL MIL"</b>, pasando por 36 rangos: Guerrero de Contenido, Cronista, Centurión, Titán del Trabajo, Arquitecto de Imperios, Oráculo, Inmortal, Celestial… Cada rango tiene su color, su lema y equipo nuevo para el personaje.<br><br>
+      Un día completo da <b>320 XP base</b>, más los bonos de cadena y el día perfecto, todo multiplicado. Los primeros niveles caen rápido; a partir del 100 cada uno cuesta más. Llegar al 1000 siguen siendo <b>años de trabajo real</b> — cuando llegues, avísame y abrimos el siguiente tramo.
     </div>
     <div class="info-block">
       <h3>🧬 Tu personaje evoluciona</h3>
@@ -362,12 +498,15 @@
       · <b>Mente</b> (leer, meditar, orar) → gana el halo y el libro de sabiduría.<br>
       · <b>Creatividad</b> (las 3 misiones) → gana la capa del creador.<br>
       · <b>Disciplina</b> → gana la corona y el aura al final.<br><br>
-      Sube de nivel y desbloqueas alas, fuego y el rango Mítico.
+      Sube de nivel y desbloqueas alas, fuego, orbes y el rango Mítico.
     </div>
     <div class="info-block">
-      <h3>📅 La rutina</h3>
-      9 horas de trabajo creativo repartidas en 3 misiones (3h + 3h + 2.5h), con pausas de 10 min cada ~50 min en vez de sentarte 3h seguidas. Entre misiones hay descansos reales de 45-60 min. El gym va entre el bloque 2 y 3 como recuperación activa. El curso después del gym, cuando el foco profundo ya bajó. Lectura y rituales nocturnos cierran el día.<br><br>
-      Si tienes más energía, extiende el Bloque 3 a 3h. Si tienes menos, hazlo en ciclos de 45/15 en vez de 50/10.
+      <h3>📅 La rutina (reordenada)</h3>
+      Cambios pensados para que no te drene:<br><br>
+      · <b>Caminas antes de bañarte</b>, no después. Antes te duchabas y salías a sudar.<br>
+      · <b>Cenas antes del curso</b> (18:50 cena → 19:30 curso → 20:00 MISIÓN 3). Antes la noche quedaba partida en cuatro trozos: snack, curso, cena, bloque. Ahora comes, y el curso funciona como rampa suave para entrar a la MISIÓN 3 en vez de arrancar en frío.<br>
+      · <b>Meditar sigue justo antes de la MISIÓN 2</b>, que es el bloque duro post-comida.<br><br>
+      9 horas de trabajo creativo repartidas en 3 misiones, con ciclos de 50/10 (usa el temporizador). Si tienes más energía, extiende el Bloque 3 a 3h. Si tienes menos, ciclos de 45/15.
     </div>
     <div class="info-block">
       <h3>📱 Guarda tu progreso</h3>
@@ -380,12 +519,13 @@
 <nav class="bottomnav">
   <button class="navbtn active" data-view="quests"><span class="ic">⚔️</span>Hoy</button>
   <button class="navbtn" data-view="stats"><span class="ic">📊</span>Progreso</button>
-  <button class="navbtn" data-view="rewards"><span class="ic">🎁</span>Premios</button>
+  <button class="navbtn" data-view="shop"><span class="ic">🛒</span>Tienda</button>
   <button class="navbtn" data-view="info"><span class="ic">📖</span>Guía</button>
 </nav>
 
 <div class="toast" id="toast"></div>
 <canvas id="confetti"></canvas>
+<div id="flash"></div>
 
 <div class="levelup-overlay" id="levelupOverlay">
   <div class="levelup-card">
@@ -395,6 +535,17 @@
     <p id="levelupSub">Ahora eres Iniciado</p>
     <div class="lvgains" id="levelupGains"></div>
     <button class="modalbtn" onclick="closeLevelup()" style="background:var(--rank);color:#1a1300;border:none;font-weight:800;">Seguir</button>
+  </div>
+</div>
+
+<div class="focus-overlay" id="focusOverlay">
+  <div class="focus-card">
+    <div class="fkick" id="focusLabel">Foco profundo</div>
+    <div class="focus-time" id="focusTime">50:00</div>
+    <div class="focus-sub" id="focusSub"></div>
+    <button class="modalbtn" id="focusBtn" onclick="focusAction()" style="background:var(--rank);color:#1a1300;border:none;font-weight:800;">Empezar 50 min</button>
+    <button class="modalbtn" onclick="closeFocus()">Cerrar (sigue corriendo)</button>
+    <button class="modalbtn danger" onclick="cancelFocus()">Cancelar temporizador</button>
   </div>
 </div>
 
@@ -418,26 +569,49 @@ const STORAGE_KEY = "rutina_rpg_waltin_v1";
 /* La racha se gana al completar ESTA misión. Cambia el id si mueves el bloque. */
 const STREAK_TRIGGER = "block1";
 
+/* Los 19 hábitos de siempre. Los id NUNCA cambian: son las claves del progreso
+   guardado. Orden y horarios sí se reordenaron para quitar cuellos de botella. */
 const QUESTS = [
-  {id:"bed",      cat:"disc",   time:"8:30",          title:"Despertar + Tender la cama",                        meta:"Rutina de arranque", xp:5},
+  {id:"bed",      cat:"disc",   time:"8:30",          title:"Despertar + Tender la cama",                        meta:"El primer duelo ganado del día", xp:5},
   {id:"post_am",  cat:"cuerpo", time:"8:35",          title:"Postura / asimetría (mañana)",                      meta:"Estiramiento 10 min", xp:5},
-  {id:"bath",     cat:"cuerpo", time:"8:45",          title:"Bañarme",                                           meta:"13 min máx", xp:5},
-  {id:"grat",     cat:"mente",  time:"9:00",          title:"Agradecer (escribir)",                              meta:"5 min", xp:5},
-  {id:"pray",     cat:"mente",  time:"9:05",          title:"Hablar con Dios",                                   meta:"10 min", xp:5},
-  {id:"break_am", cat:"cuerpo", time:"9:15",          title:"Desayunar + salir a caminar",                       meta:"30 min", xp:10},
-  {id:"block1",   cat:"creat",  time:"9:45 – 12:45",  title:"MISIÓN 1: Escribir / Grabar / Editar / Miniatura",  meta:"3h · ciclos 50 min foco / 10 min pausa", xp:50, boss:true},
+  {id:"break_am", cat:"cuerpo", time:"8:45 – 9:15",   title:"Desayunar + salir a caminar",                       meta:"30 min · luz y sangre en movimiento", xp:10},
+  {id:"bath",     cat:"cuerpo", time:"9:20",          title:"Bañarme",                                           meta:"13 min · ahora sí, después de caminar", xp:5},
+  {id:"grat",     cat:"mente",  time:"9:35",          title:"Agradecer (escribir)",                              meta:"5 min", xp:5},
+  {id:"pray",     cat:"mente",  time:"9:40",          title:"Hablar con Dios",                                   meta:"5-10 min antes de entrar al bloque", xp:5},
+  {id:"block1",   cat:"creat",  time:"9:45 – 12:45",  title:"MISIÓN 1: Escribir / Grabar / Editar / Miniatura",  meta:"3h · 3 ciclos de 50/10 · asegura la racha", xp:50, boss:true},
   {id:"rest1",    cat:"cuerpo", time:"12:45 – 13:30", title:"Descanso largo: comer + siesta",                    meta:"45 min de recuperación real", xp:10},
-  {id:"med",      cat:"mente",  time:"13:30",         title:"Meditar",                                           meta:"10-20 min · reset mental", xp:10},
-  {id:"block2",   cat:"creat",  time:"13:45 – 16:45", title:"MISIÓN 2: Escribir / Grabar / Editar / Miniatura",  meta:"3h · mismo formato de ciclos", xp:50, boss:true},
+  {id:"med",      cat:"mente",  time:"13:30",         title:"Meditar",                                           meta:"10-20 min · reset antes del bloque duro", xp:10},
+  {id:"block2",   cat:"creat",  time:"13:45 – 16:45", title:"MISIÓN 2: Escribir / Grabar / Editar / Miniatura",  meta:"3h · EL BLOQUE QUE MÁS PAGA DEL DÍA", xp:60, boss:true, payday:true},
   {id:"rest2",    cat:"cuerpo", time:"16:45 – 17:15", title:"Descanso corto: paseo / siesta",                    meta:"30 min", xp:10},
-  {id:"gym",      cat:"cuerpo", time:"17:15 – 18:35", title:"Gym",                                               meta:"1h20 · recuperación activa", xp:30},
+  {id:"gym",      cat:"cuerpo", time:"17:15 – 18:35", title:"Gym",                                               meta:"1h20 · testosterona y cabeza limpia", xp:30},
   {id:"snack",    cat:"cuerpo", time:"18:35",         title:"Ducha + snack",                                     meta:"15 min", xp:5},
-  {id:"course",   cat:"creat",  time:"18:50 – 19:20", title:"Curso / mejorar habilidades artísticas",            meta:"30 min · tarea ligera", xp:20},
-  {id:"dinner",   cat:"cuerpo", time:"19:20 – 20:00", title:"Cena + descanso",                                   meta:"40 min", xp:10},
-  {id:"block3",   cat:"creat",  time:"20:00 – 22:30", title:"MISIÓN 3: Escribir / Grabar / Editar / Miniatura",  meta:"2.5h · si hay energía, extender a 3h", xp:40, boss:true},
-  {id:"read",     cat:"mente",  time:"22:30",         title:"Leer",                                              meta:"30 min", xp:10},
+  {id:"dinner",   cat:"cuerpo", time:"18:50 – 19:30", title:"Cena + descanso",                                   meta:"40 min · come antes, no partas la noche", xp:10},
+  {id:"course",   cat:"creat",  time:"19:30 – 20:00", title:"Curso / mejorar habilidades artísticas",            meta:"30 min · rampa suave hacia la MISIÓN 3", xp:20},
+  {id:"block3",   cat:"creat",  time:"20:00 – 22:30", title:"MISIÓN 3: Escribir / Grabar / Editar / Miniatura",  meta:"2.5h · si hay energía, extender a 3h", xp:50, boss:true},
+  {id:"read",     cat:"mente",  time:"22:30",         title:"Leer",                                              meta:"30 min · sin pantalla de trabajo", xp:10},
   {id:"post_pm",  cat:"cuerpo", time:"23:00",         title:"Postura / asimetría (noche)",                       meta:"10 min", xp:5},
-  {id:"noporn",   cat:"disc",   time:"todo el día",   title:"Dejar la pornografía",                              meta:"Hábito diario — el de mayor peso", xp:15},
+  {id:"noporn",   cat:"disc",   time:"todo el día",   title:"Dejar la pornografía",                              meta:"El hábito de mayor peso. Innegociable.", xp:15},
+];
+
+/* Misiones EXTRA opcionales: dan XP y suben atributos, pero no cuentan para el
+   día perfecto ni para la racha. Son puro bonus para los días con gasolina. */
+const EXTRA_QUESTS = [
+  {id:"x_water",   cat:"cuerpo", time:"todo el día",  title:"Beber 2L de agua",                   meta:"La energía más barata que existe", xp:8},
+  {id:"x_sun",     cat:"cuerpo", time:"mañana",       title:"10 min de sol directo",              meta:"Testosterona y reloj biológico en hora", xp:8},
+  {id:"x_publish", cat:"creat",  time:"cuando salga", title:"🚀 Publicar / subir algo al canal",  meta:"Lo único que convierte el trabajo en resultados", xp:35},
+  {id:"x_ideas",   cat:"creat",  time:"15 min",       title:"Buscar ideas / revisar analíticas",  meta:"Munición para los próximos videos", xp:12},
+  {id:"x_cold",    cat:"disc",   time:"al bañarte",   title:"Ducha fría (30s finales)",           meta:"Golpe de disciplina en frío", xp:10},
+  {id:"x_sleep",   cat:"disc",   time:"00:30",        title:"Dormir antes de las 00:30",          meta:"La MISIÓN 1 de mañana se decide esta noche", xp:12},
+];
+
+const ALL_QUESTS = QUESTS.concat(EXTRA_QUESTS);
+
+/* Bonos por encadenar los bloques grandes. El objetivo: que hacer la MISIÓN 2
+   sea lo más rentable del día, y que cerrar las tres sea un evento. */
+const CHAIN_BONUSES = [
+  {id:"wind", need:["block2"],                     xp:40,  cat:"disc",  icon:"🫁", label:"Segundo Aliento", msg:"El bloque más duro del día, hecho."},
+  {id:"b12",  need:["block1","block2"],            xp:60,  cat:"creat", icon:"⚔️", label:"Doble Jefe",      msg:"MISIÓN 1 + MISIÓN 2 el mismo día."},
+  {id:"b123", need:["block1","block2","block3"],   xp:120, cat:"creat", icon:"👑", label:"Triple Jefe",     msg:"Las tres misiones. Día de guerrero."},
 ];
 
 const CATS = {
@@ -449,12 +623,12 @@ const CATS = {
 
 const QUEST_REASONS = {
   block1: "Esta es la que cuenta la racha. Márcala y el día ya está asegurado.",
-  block2: "Segunda ventana de foco profundo: sigue avanzando mientras el cuerpo ya se recuperó.",
-  block3: "Última misión del día. Ciérrala y no pierdes el impulso del proyecto.",
+  block2: "El bloque mejor pagado: 60 XP + Segundo Aliento (+40) + Doble Jefe (+60) si ya hiciste la 1.",
+  block3: "Última misión del día. Ciérrala y desbloqueas el Triple Jefe (+120).",
   gym:    "Recarga activa: sostiene la energía que necesitas para las siguientes misiones.",
-  course: "Invertir en habilidad ahora compone tu crecimiento a largo plazo como creador.",
+  course: "Rampa suave hacia la MISIÓN 3 e inversión en habilidad a largo plazo.",
   noporn: "Sostiene tu disciplina base. Protégelo antes que cualquier otra cosa hoy.",
-  med:    "Resetea tu mente antes de entrar a la próxima misión.",
+  med:    "Resetea tu mente antes de entrar al bloque duro de la tarde.",
   read:   "Cierra el día alimentando a Mente, sin pantalla de trabajo.",
   pray:   "Cinco minutos que ordenan todo el resto del día.",
   grat:   "Empieza el día decidiendo qué mirar. Cambia el tono de las próximas 12 horas.",
@@ -501,6 +675,29 @@ const RANKS = [
   {min:1000,max:999999, name:"EL MIL",             sub:"Llegaste al final del mapa",    color:"#ffd700", q:"Llegaste al nivel 1000. Pídeme el siguiente tramo y seguimos."},
 ];
 
+/* ================= TIENDA ================= */
+const SHOP = [
+  {id:"shield", kind:"power", icon:"🛡️", name:"Escudo de Racha",  cost:500,  desc:"Si un día no marcas la MISIÓN 1, se consume solo y tu racha NO se rompe. Máximo 3 guardados."},
+  {id:"boost",  kind:"power", icon:"⚡",  name:"Doble XP (hoy)",   cost:400,  desc:"x2 en todo lo que marques el resto del día. Úsalo en un día que sepas que vas a romperla."},
+  {id:"aura_fire",  kind:"skin", icon:"🔥", name:"Aura Infernal", cost:900,  skin:"#ff5722", desc:"Tu personaje arde en naranja."},
+  {id:"aura_ice",   kind:"skin", icon:"🧊", name:"Aura Glacial",  cost:1200, skin:"#38bdf8", desc:"Azul hielo, sangre fría."},
+  {id:"aura_void",  kind:"skin", icon:"🌌", name:"Aura del Vacío",cost:1800, skin:"#a855f7", desc:"Púrpura profundo. El creador oscuro."},
+  {id:"aura_gold",  kind:"skin", icon:"👑", name:"Aura Dorada",   cost:2500, skin:"#ffd700", desc:"Oro puro. Para cuando ya no hay excusas."},
+  {id:"aura_blood", kind:"skin", icon:"🩸", name:"Aura Carmesí",  cost:3200, skin:"#e11d48", desc:"Rojo sangre. Modo guerra."},
+];
+
+/* ================= DESAFÍOS DIARIOS ================= */
+const CHALLENGES = [
+  {id:"early",  icon:"🌅", text:"Marca la MISIÓN 1 antes de las 11:00",        xp:50, test:()=> !!state.done.block1 && nowMin() <= 660},
+  {id:"double", icon:"⚔️", text:"Haz la MISIÓN 1 y la MISIÓN 2 el mismo día",  xp:60, test:()=> !!state.done.block1 && !!state.done.block2},
+  {id:"iron",   icon:"💪", text:"Gym + las 3 misiones grandes",                 xp:90, test:()=> !!state.done.gym && !!state.done.block1 && !!state.done.block2 && !!state.done.block3},
+  {id:"mind",   icon:"🧠", text:"Meditar, hablar con Dios y leer el mismo día", xp:50, test:()=> !!state.done.med && !!state.done.pray && !!state.done.read},
+  {id:"ship",   icon:"🚀", text:"Publicar o subir algo al canal",               xp:80, test:()=> !!state.done.x_publish},
+  {id:"full",   icon:"🔥", text:"Completar 15 misiones del día",                xp:70, test:()=> QUESTS.filter(q=>state.done[q.id]).length >= 15},
+  {id:"focus",  icon:"🎯", text:"Completar 3 ciclos de foco de 50 min",         xp:70, test:()=> state.cycles >= 3},
+  {id:"clean",  icon:"⚔️", text:"Cerrar el día con el hábito de fondo intacto", xp:45, test:()=> !!state.done.noporn && nowMin() >= 1200},
+];
+
 const ACHIEVEMENTS = [
   {id:"first",     test:s=>s.totalQuestsCompleted>=1, label:"Primera misión",   icon:"🌱"},
   {id:"streak3",   test:s=>s.bestStreak>=3,   label:"Racha de 3 días",   icon:"🔥"},
@@ -524,6 +721,13 @@ const ACHIEVEMENTS = [
   {id:"lvl1000",   test:s=>s.level>=1000,     label:"EL MIL",            icon:"👑"},
   {id:"str5",      test:s=>attrLevel(s.attrs.cuerpo)>=5, label:"Fuerza Lv5",    icon:"💪"},
   {id:"wis5",      test:s=>attrLevel(s.attrs.mente)>=5,  label:"Sabiduría Lv5", icon:"🧠"},
+  {id:"triple1",   test:s=>s.triplesTotal>=1,  label:"Primer Triple Jefe", icon:"👑"},
+  {id:"triple10",  test:s=>s.triplesTotal>=10, label:"10 Triples Jefe",    icon:"⚔️"},
+  {id:"cycle10",   test:s=>s.cyclesTotal>=10,  label:"10 ciclos de foco",  icon:"🎯"},
+  {id:"cycle100",  test:s=>s.cyclesTotal>=100, label:"100 ciclos de foco", icon:"🎯"},
+  {id:"mult2",     test:s=>s.bestMultiplier>=1.5, label:"Multiplicador x1.5", icon:"⚡"},
+  {id:"shopper",   test:s=>s.skins.length>=1,  label:"Primera aura",       icon:"🎨"},
+  {id:"collector", test:s=>s.skins.length>=5,  label:"Todas las auras",    icon:"🌈"},
 ];
 
 /* ================= ESTADO ================= */
@@ -531,6 +735,7 @@ function todayStr(){
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function nowMin(){ const d = new Date(); return d.getHours()*60 + d.getMinutes(); }
 function dayDiff(a,b){
   return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/86400000);
 }
@@ -549,7 +754,18 @@ function defaultState(){
       {name:"Comida favorita / antojo", cost:350, timesClaimed:0},
       {name:"Comprar algo pequeño que quieras", cost:600, timesClaimed:0},
       {name:"Día libre de un bloque (usar con cuidado)", cost:900, timesClaimed:0},
-    ]
+    ],
+    /* --- añadidos en la versión "videojuego". Solo se AÑADEN campos. --- */
+    gained:{},            // XP real otorgado hoy por misión (para deshacer exacto)
+    dayBonus:{},          // bonos de cadena ya cobrados hoy
+    shields:0,            // escudos de racha en inventario
+    shieldUsedOn:null,    // día que salvó el último escudo
+    boostDate:null,       // día con Doble XP activo
+    skins:[], activeSkin:null,
+    challengeDate:null, challengeXp:0,
+    cycles:0, cyclesTotal:0,
+    triplesTotal:0, bestMultiplier:1,
+    focusEnd:null, focusKind:null
   };
 }
 
@@ -558,6 +774,7 @@ function defaultState(){
    antes de dibujar nada y la app se ve en blanco. Aquí cae a memoria y avisa. */
 let storageOK = true;
 let memoryStore = null;
+let bootMsgs = [];
 function readStore(){
   try{ return localStorage.getItem(STORAGE_KEY); }
   catch(e){ storageOK = false; return memoryStore; }
@@ -598,15 +815,28 @@ function load(){
       const gap        = dayDiff(s.lastDate, today);
 
       /* La racha del día anterior ya se contó en el momento de marcar la MISIÓN 1.
-         Aquí solo se rompe si ese día no la marcó, o si se saltó días enteros. */
-      if(!trigger || gap > 1) s.streak = 0;
+         Aquí solo se rompe si ese día no la marcó, o si se saltó días enteros.
+         El Escudo de Racha comprado en la tienda cubre UN día fallado. */
+      if(!trigger || gap > 1){
+        if(s.shields > 0 && gap <= 1 && s.streak > 0){
+          s.shields -= 1;
+          s.shieldUsedOn = s.lastDate;
+          bootMsgs.push("🛡️ Un Escudo de Racha salvó tu racha de " + s.streak + " días");
+        } else {
+          s.streak = 0;
+        }
+      }
 
       if(allDone){ s.perfectDays += 1; s.xp += 25; s.coins += 25; s.totalXpEarned += 25; }
 
       s.history.push({date:s.lastDate, trigger, allDone, doneCount, total:QUESTS.length});
       if(s.history.length > 60) s.history = s.history.slice(-60);
     }
+    /* Reinicio del día: solo lo que es "de hoy" */
     s.done = {};
+    s.gained = {};
+    s.dayBonus = {};
+    s.cycles = 0;
     s.streakCountedFor = null;
     s.lastDate = today;
     saveRaw(s);
@@ -621,7 +851,7 @@ let currentView = "quests";
 
 /* ================= CÁLCULOS ================= */
 /* Curva pensada para que el nivel 1000 sea una meta de años, no de siglos.
-   Nivel 1 cuesta 120 XP y el 1000 cuesta ~1119. Un día completo da 300 XP. */
+   Nivel 1 cuesta 120 XP y el 1000 cuesta ~1119. */
 function xpNeeded(level){ return 120 + (level-1); }
 function attrLevel(v){ return 1 + Math.floor(v/300); }
 function attrProgress(v){ return v % 300; }
@@ -639,6 +869,39 @@ function parseWindow(t){
   const s = parseHM(t); return {start:s, end:s+45};
 }
 
+/* ---- MULTIPLICADOR ---- */
+function multParts(){
+  const streakB = Math.min(.50, state.streak * .02);
+  const doneCount = ALL_QUESTS.filter(q=>state.done[q.id]).length;
+  const comboB  = Math.min(.30, doneCount * .02);
+  const boostB  = (state.boostDate === todayStr()) ? 1 : 0;
+  return {streakB, comboB, boostB, doneCount, total: 1 + streakB + comboB + boostB};
+}
+function mult(){ return multParts().total; }
+
+/* ---- XP ---- */
+function addXP(amount, cat){
+  state.xp += amount; state.coins += amount; state.totalXpEarned += amount;
+  if(cat && state.attrs[cat] !== undefined) state.attrs[cat] += amount;
+}
+function takeXP(amount, cat){
+  state.xp -= amount; state.coins -= amount; state.totalXpEarned -= amount;
+  if(cat && state.attrs[cat] !== undefined) state.attrs[cat] -= amount;
+  if(state.xp < 0) state.xp = 0;
+  if(state.coins < 0) state.coins = 0;
+  if(state.totalXpEarned < 0) state.totalXpEarned = 0;
+  if(cat && state.attrs[cat] < 0) state.attrs[cat] = 0;
+}
+/* Devuelve el nivel ANTERIOR si hubo subida, o null si no */
+function levelUpCheck(){
+  const before = state.level;
+  while(state.xp >= xpNeeded(state.level)){
+    state.xp -= xpNeeded(state.level);
+    state.level += 1;
+  }
+  return state.level > before ? before : null;
+}
+
 /* ================= PERSONAJE ================= */
 function characterSVG(opts){
   const o = opts || {};
@@ -646,7 +909,7 @@ function characterSVG(opts){
   const attrs  = o.attrs  || state.attrs;
   const rank   = getRank(level);
   const s      = rank.index;
-  const c      = rank.color;
+  const c      = state.activeSkin || rank.color;
 
   const fuerza = attrLevel(attrs.cuerpo);
   const sabid  = attrLevel(attrs.mente);
@@ -785,6 +1048,12 @@ function beep(freq, dur, type){
   }catch(e){}
 }
 function chord(freqs){ freqs.forEach((f,i)=>setTimeout(()=>beep(f,.22,'triangle'), i*90)); }
+function flashScreen(){
+  const f = document.getElementById('flash');
+  f.classList.remove('go');
+  void (f.offsetWidth);
+  f.classList.add('go');
+}
 
 function floatXP(x, y, txt){
   const el = document.createElement('div');
@@ -853,8 +1122,64 @@ function celebrateStreak(){
   chord([523,659,784,1047]);
   vibrate([40,60,40,60,80]);
   const el = document.getElementById('streakcard');
-  el.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}], {duration:600, easing:'cubic-bezier(.2,1.5,.4,1)'});
+  if(el.animate) el.animate([{transform:'scale(1)'},{transform:'scale(1.06)'},{transform:'scale(1)'}], {duration:600, easing:'cubic-bezier(.2,1.5,.4,1)'});
   setTimeout(()=>toast("🔥 ¡Racha de "+state.streak+" día"+(state.streak===1?"":"s")+"!"), 250);
+}
+
+/* ================= BONOS DE CADENA ================= */
+/* Otorga los bonos cuya condición ya se cumple y retira los que dejaron de
+   cumplirse (si desmarcas un bloque). Devuelve los recién ganados. */
+function syncBonuses(){
+  const fresh = [];
+  CHAIN_BONUSES.forEach(b=>{
+    const ok  = b.need.every(id => !!state.done[id]);
+    const had = state.dayBonus[b.id] != null;
+    if(ok && !had){
+      const amount = Math.round(b.xp * mult());
+      state.dayBonus[b.id] = amount;
+      addXP(amount, b.cat);
+      if(b.id === "b123") state.triplesTotal += 1;
+      fresh.push({...b, amount});
+    } else if(!ok && had){
+      takeXP(state.dayBonus[b.id], b.cat);
+      delete state.dayBonus[b.id];
+      if(b.id === "b123" && state.triplesTotal > 0) state.triplesTotal -= 1;
+    }
+  });
+  return fresh;
+}
+function celebrateChain(b){
+  flashScreen();
+  fireConfetti(b.id === "b123" ? '#ffd700' : null, b.id === "b123" ? 160 : 80);
+  chord(b.id === "b123" ? [523,659,784,1047,1319] : [523,659,784]);
+  vibrate([40,60,40,60,120]);
+  setTimeout(()=>toast(b.icon + " " + b.label + " · +" + b.amount + " XP"), 200);
+}
+
+/* ================= DESAFÍO DIARIO ================= */
+function todaysChallenge(){
+  const t = todayStr();
+  let h = 0;
+  for(let i=0;i<t.length;i++) h = (h*31 + t.charCodeAt(i)) >>> 0;
+  return CHALLENGES[h % CHALLENGES.length];
+}
+function checkChallenge(){
+  if(state.challengeDate === todayStr()) return null;
+  const ch = todaysChallenge();
+  let ok = false;
+  try{ ok = !!ch.test(); }catch(e){ ok = false; }
+  if(!ok) return null;
+  const amount = Math.round(ch.xp * mult());
+  state.challengeDate = todayStr();
+  state.challengeXp = amount;
+  addXP(amount, 'disc');
+  return {...ch, amount};
+}
+function celebrateChallenge(ch){
+  fireConfetti('#c084fc', 70);
+  chord([659,784,988]);
+  vibrate([30,50,30]);
+  setTimeout(()=>toast("🎯 Desafío del día completado · +" + ch.amount + " XP"), 200);
 }
 
 /* ================= NIVEL ================= */
@@ -867,6 +1192,7 @@ function showLevelup(level, before){
   const gains = [];
   const rankBefore = getRank(before);
   if(rank.index > rankBefore.index) gains.push(["Nuevo rango", rank.name]);
+  if(level - before > 1) gains.push(["Niveles ganados de golpe", (level - before)]);
   gains.push(["XP para el siguiente nivel", xpNeeded(level)]);
   const f = attrLevel(state.attrs.cuerpo), w = attrLevel(state.attrs.mente);
   gains.push(["Fuerza", "Lv " + f]);
@@ -889,7 +1215,9 @@ function closeLevelup(){
 function checkAchievements(){
   const fresh = [];
   ACHIEVEMENTS.forEach(a=>{
-    if(a.test(state) && !state.achievements.includes(a.id)){ state.achievements.push(a.id); fresh.push(a); }
+    let ok = false;
+    try{ ok = !!a.test(state); }catch(e){ ok = false; }
+    if(ok && !state.achievements.includes(a.id)){ state.achievements.push(a.id); fresh.push(a); }
   });
   if(fresh.length){
     save();
@@ -899,47 +1227,159 @@ function checkAchievements(){
   }
 }
 
+/* ================= TEMPORIZADOR DE FOCO ================= */
+const FOCUS_MIN = {foco:50, pausa:10};
+const CYCLE_XP = 15;
+
+function openFocus(){ document.getElementById('focusOverlay').classList.add('show'); renderFocus(); }
+function closeFocus(){ document.getElementById('focusOverlay').classList.remove('show'); }
+function startFocus(kind){
+  state.focusKind = kind;
+  state.focusEnd = Date.now() + FOCUS_MIN[kind]*60000;
+  save(); openFocus(); renderFocus();
+  beep(660,.12,'triangle'); vibrate(20);
+}
+function cancelFocus(){
+  state.focusEnd = null; state.focusKind = null;
+  save(); renderFocus(); closeFocus(); toast("Temporizador cancelado");
+}
+function focusAction(){
+  if(state.focusEnd) return;                 // ya está corriendo
+  startFocus(state.focusKind === 'foco' ? 'pausa' : 'foco');
+}
+function focusLeft(){
+  if(!state.focusEnd) return 0;
+  return Math.max(0, state.focusEnd - Date.now());
+}
+function fmtMS(ms){
+  const t = Math.ceil(ms/1000);
+  return String(Math.floor(t/60)).padStart(2,'0') + ":" + String(t%60).padStart(2,'0');
+}
+/* Se ejecuta cada segundo. Sobrevive a cerrar la app porque guarda el instante
+   final, no los segundos restantes. */
+function tickFocus(){
+  if(state.focusEnd && Date.now() >= state.focusEnd){
+    const kind = state.focusKind;
+    state.focusEnd = null; state.focusKind = kind;   // recordamos qué acabó
+    if(kind === 'foco'){
+      const amount = Math.round(CYCLE_XP * mult());
+      state.cycles += 1; state.cyclesTotal += 1;
+      addXP(amount, 'creat');
+      const before = levelUpCheck();
+      const chal = checkChallenge();
+      save(); render();
+      toast("🎯 Ciclo de foco completo · +" + amount + " XP");
+      fireConfetti('#c084fc', 60); chord([784,988,1319]); vibrate([50,60,50]);
+      if(before !== null) showLevelup(state.level, before);
+      else if(chal) celebrateChallenge(chal);
+      checkAchievements();
+    } else {
+      save(); render();
+      toast("☕ Pausa terminada. Vuelve al bloque.");
+      chord([523,659]); vibrate([60,40,60]);
+    }
+  }
+  renderFocus();
+}
+function renderFocus(){
+  const timeEl = document.getElementById('focusTime');
+  const lblEl  = document.getElementById('focusLabel');
+  const subEl  = document.getElementById('focusSub');
+  const btnEl  = document.getElementById('focusBtn');
+  const running = !!state.focusEnd;
+  /* focusKind guarda lo ÚLTIMO que corrió. Si nunca corrió nada (null), lo que
+     toca es el foco — igual que hace focusAction(). */
+  const kind = running ? state.focusKind : null;
+
+  if(running){
+    timeEl.textContent = fmtMS(focusLeft());
+    lblEl.textContent  = kind === 'pausa' ? "Pausa" : "Foco profundo";
+    subEl.textContent  = kind === 'pausa'
+      ? "10 minutos. Levántate, camina, no abras nada de trabajo."
+      : "50 minutos sin tocar el teléfono. Al terminar: +" + CYCLE_XP + " XP x multiplicador.";
+    btnEl.textContent  = "Corriendo…";
+    btnEl.disabled = true;
+  } else {
+    const next = state.focusKind === 'foco' ? 'pausa' : 'foco';
+    timeEl.textContent = String(FOCUS_MIN[next]).padStart(2,'0') + ":00";
+    lblEl.textContent  = next === 'pausa' ? "Pausa lista" : "Listo para el foco";
+    subEl.textContent  = next === 'pausa'
+      ? "Ciclo terminado. Tómate los 10 minutos: la pausa es parte del método."
+      : "Ciclos de 50/10. Un bloque de 3h asusta; uno de 50 minutos no.";
+    btnEl.textContent  = next === 'pausa' ? "Empezar pausa de 10 min" : "Empezar 50 min de foco";
+    btnEl.disabled = false;
+  }
+}
+
 /* ================= ACCIONES ================= */
+function questById(id){ return ALL_QUESTS.find(x=>x.id===id); }
+
 function toggle(id, ev){
-  const q = QUESTS.find(x=>x.id===id);
+  const q = questById(id);
   if(!q) return;
   const was = !!state.done[id];
   state.done[id] = !was;
 
   if(!was){
-    state.xp += q.xp; state.coins += q.xp;
-    state.attrs[q.cat] += q.xp;
+    const m = mult();
+    const gain = Math.round(q.xp * m);
+    state.gained[id] = gain;
+    addXP(gain, q.cat);
     state.totalQuestsCompleted += 1;
-    state.totalXpEarned += q.xp;
+    if(m > state.bestMultiplier) state.bestMultiplier = m;
 
-    if(ev){ floatXP(ev.clientX, ev.clientY, "+"+q.xp); }
+    if(ev && ev.clientX != null){ floatXP(ev.clientX, ev.clientY, "+"+gain); }
     vibrate(18); beep(560,.09,'triangle');
 
-    let leveled = false, before = state.level;
-    while(state.xp >= xpNeeded(state.level)){
-      state.xp -= xpNeeded(state.level);
-      state.level += 1;
-      leveled = true;
-    }
-
+    const newBonuses  = syncBonuses();
     const streakEvent = syncStreak();
+    const chal        = checkChallenge();
+    const before      = levelUpCheck();
     save(); render();
 
-    if(leveled) showLevelup(state.level, before);
+    if(before !== null) showLevelup(state.level, before);
     else if(streakEvent === "won") celebrateStreak();
-    else if(q.boss){ toast("✅ " + q.title.split(':')[0] + " completada · +" + q.xp + " XP"); fireConfetti(null, 40); }
+    else if(newBonuses.length) celebrateChain(newBonuses[newBonuses.length-1]);
+    else if(chal) celebrateChallenge(chal);
+    else if(q.boss){ toast("✅ " + q.title.split(':')[0] + " · +" + gain + " XP"); fireConfetti(null, 40); }
   } else {
-    state.xp -= q.xp; state.coins -= q.xp;
-    state.attrs[q.cat] -= q.xp;
+    /* Devolvemos EXACTAMENTE lo que se dio (el multiplicador cambia durante el día) */
+    const back = state.gained[id] != null ? state.gained[id] : q.xp;
+    takeXP(back, q.cat);
+    delete state.gained[id];
     state.totalQuestsCompleted -= 1;
-    state.totalXpEarned -= q.xp;
-    if(state.xp < 0) state.xp = 0;
-    if(state.coins < 0) state.coins = 0;
-    if(state.attrs[q.cat] < 0) state.attrs[q.cat] = 0;
+    if(state.totalQuestsCompleted < 0) state.totalQuestsCompleted = 0;
+    syncBonuses();
     syncStreak();
     save(); render();
   }
   checkAchievements();
+}
+
+/* ================= TIENDA ================= */
+function buy(id){
+  const it = SHOP.find(x=>x.id===id);
+  if(!it) return;
+  if(it.kind === 'skin' && state.skins.includes(it.id)){ equipSkin(it.id); return; }
+  if(it.id === 'shield' && state.shields >= 3){ toast("Ya tienes 3 escudos (máximo)"); return; }
+  if(it.id === 'boost'  && state.boostDate === todayStr()){ toast("El Doble XP ya está activo hoy"); return; }
+  if(state.coins < it.cost){ toast("Te faltan " + (it.cost - state.coins) + " monedas"); return; }
+
+  state.coins -= it.cost;
+  if(it.id === 'shield') state.shields += 1;
+  if(it.id === 'boost')  state.boostDate = todayStr();
+  if(it.kind === 'skin'){ state.skins.push(it.id); state.activeSkin = it.skin; }
+
+  save(); render();
+  toast("🛒 " + it.name + (it.id === 'boost' ? " · ¡x2 activo!" : " comprado"));
+  fireConfetti(it.skin || '#fbbf24', 60); chord([523,659,784]); vibrate([30,40,30]);
+  checkAchievements();
+}
+function equipSkin(id){
+  const it = SHOP.find(x=>x.id===id);
+  if(!it || !state.skins.includes(id)) return;
+  state.activeSkin = (state.activeSkin === it.skin) ? null : it.skin;
+  save(); render(); vibrate(15);
 }
 
 function addReward(){
@@ -1009,8 +1449,7 @@ function toggleHaptic(){ state.hapticOn = !state.hapticOn; save(); document.getE
 
 /* ================= RECOMENDACIONES ================= */
 function buildRecommendations(){
-  const now = new Date();
-  const nowMin = now.getHours()*60 + now.getMinutes();
+  const min = nowMin();
   const cards = [];
 
   /* Prioridad absoluta: la misión que da la racha */
@@ -1021,22 +1460,31 @@ function buildRecommendations(){
       title:q.title, why:QUEST_REASONS[STREAK_TRIGGER], qid:q.id
     });
   }
+  /* Segunda prioridad: el bloque que más paga */
+  if(state.done[STREAK_TRIGGER] && !state.done.block2){
+    const q = QUESTS.find(x=>x.id==='block2');
+    cards.push({
+      badge:'now', badgeLabel:'💰 El que más paga',
+      title:q.title, why:QUEST_REASONS.block2, qid:q.id
+    });
+  }
 
   const weakest = Object.keys(state.attrs).reduce((a,b)=>
     attrLevel(state.attrs[a]) <= attrLevel(state.attrs[b]) ? a : b);
 
-  const pending = QUESTS.filter(q => !state.done[q.id] && q.id !== STREAK_TRIGGER).map(q=>{
+  const taken = cards.map(c=>c.qid);
+  const pending = QUESTS.filter(q => !state.done[q.id] && taken.indexOf(q.id) === -1).map(q=>{
     const w = parseWindow(q.time);
     let score, badge;
     if(w.allday){
-      const late = nowMin >= 20*60;
+      const late = min >= 20*60;
       score = late ? 92 : 40; badge = late ? 'urgent' : 'next';
-    } else if(w.end < nowMin){
+    } else if(w.end < min){
       score = q.boss ? 96 : 58; badge = 'urgent';
-    } else if(w.start <= nowMin && nowMin <= w.end){
+    } else if(w.start <= min && min <= w.end){
       score = q.boss ? 90 : 74; badge = 'now';
     } else {
-      score = 50 - Math.min(48, (w.start - nowMin)/12); badge = 'next';
+      score = 50 - Math.min(48, (w.start - min)/12); badge = 'next';
     }
     if(q.cat === weakest) score += 7;
     return {q, w, score, badge};
@@ -1044,7 +1492,7 @@ function buildRecommendations(){
 
   pending.sort((a,b)=> b.score - a.score || a.w.start - b.w.start);
 
-  pending.slice(0, 3 - cards.length + 1).forEach(it=>{
+  pending.forEach(it=>{
     if(cards.length >= 3) return;
     cards.push({
       badge: it.badge,
@@ -1064,15 +1512,40 @@ function buildRecommendations(){
 
 /* ================= RENDER ================= */
 const SECTIONS = [
-  ["🌅 Mañana",            ["bed","post_am","bath","grat","pray","break_am"]],
-  ["🔥 Misión 1 — cuenta la racha", ["block1"]],
-  ["☕ Descanso",           ["rest1","med"]],
-  ["🎬 Misión 2",          ["block2"]],
-  ["💪 Tarde",             ["rest2","gym","snack","course","dinner"]],
-  ["🌙 Misión 3",          ["block3"]],
-  ["🛏️ Noche",             ["read","post_pm"]],
-  ["⚔️ Hábito de fondo",   ["noporn"]],
+  ["🌅 Mañana",                          ["bed","post_am","break_am","bath","grat","pray"]],
+  ["🔥 MISIÓN 1 — cuenta la racha",      ["block1"]],
+  ["☕ Recuperación",                     ["rest1","med"]],
+  ["💰 MISIÓN 2 — la que más paga",      ["block2"]],
+  ["💪 Tarde",                            ["rest2","gym","snack","dinner","course"]],
+  ["🌙 MISIÓN 3 — cierra el Triple",     ["block3"]],
+  ["🛏️ Noche",                            ["read","post_pm"]],
+  ["⚔️ Hábito de fondo",                  ["noporn"]],
 ];
+
+function questRow(q, extra){
+  const on   = !!state.done[q.id];
+  const key  = q.id === STREAK_TRIGGER;
+  const cls  = [
+    'quest',
+    q.boss ? 'boss' : '',
+    key ? 'keystone' : '',
+    q.payday ? 'payday' : '',
+    extra ? 'extra' : '',
+    on ? 'done' : ''
+  ].filter(Boolean).join(' ');
+  const shown = state.gained[q.id] != null ? state.gained[q.id] : Math.round(q.xp * mult());
+  return `<div class="${cls}">
+    <div class="check ${on?'on':''}" onclick="toggle('${q.id}', event)">${on?'✓':''}</div>
+    <div class="qbody">
+      <div class="qtitle">${q.title}<span class="tag ${q.cat}">${CATS[q.cat].short}</span>${key?'<span class="keypill">🔥 RACHA</span>':''}${q.payday?'<span class="goldpill">💰 +100 DE BONO</span>':''}</div>
+      <div class="qmeta">${q.time} · ${q.meta}</div>
+    </div>
+    <div class="qright">
+      <div class="xpval">+${shown}</div>
+      ${q.boss ? `<button class="focusbtn" onclick="openFocus()">🎯 Foco</button>` : ''}
+    </div>
+  </div>`;
+}
 
 function render(){
   const rank = getRank(state.level);
@@ -1095,6 +1568,17 @@ function render(){
   document.getElementById('xpneed').textContent = need;
   document.getElementById('xpfill').style.width = Math.min(100, state.xp/need*100) + '%';
 
+  /* multiplicador */
+  const mp = multParts();
+  const badge = document.getElementById('multBadge');
+  badge.textContent = "x" + mp.total.toFixed(2);
+  badge.classList.toggle('hot', mp.total >= 1.3);
+  const parts = [];
+  parts.push("🔥 racha +" + Math.round(mp.streakB*100) + "%");
+  parts.push("⚡ combo +" + Math.round(mp.comboB*100) + "%");
+  if(mp.boostB) parts.push("💥 DOBLE XP");
+  document.getElementById('multDetail').textContent = parts.join(" · ");
+
   /* racha */
   const triggerDone = !!state.done[STREAK_TRIGGER];
   const sc = document.getElementById('streakcard');
@@ -1104,6 +1588,9 @@ function render(){
   document.getElementById('streakstate').textContent = triggerDone
     ? '✅ El día de hoy ya está contado'
     : 'Marca la MISIÓN 1 y el día cuenta al instante';
+  const shieldRow = document.getElementById('shieldRow');
+  shieldRow.hidden = state.shields <= 0;
+  shieldRow.textContent = "🛡️ " + state.shields + " escudo" + (state.shields===1?"":"s") + " de racha guardado" + (state.shields===1?"":"s");
 
   /* anillo de hoy */
   const doneCount = QUESTS.filter(q=>state.done[q.id]).length;
@@ -1111,6 +1598,30 @@ function render(){
   document.getElementById('ringFill').style.strokeDashoffset = (207.3 * (1 - pct)).toFixed(1);
   document.getElementById('ringBig').textContent = doneCount;
   document.getElementById('ringSml').textContent = 'de ' + QUESTS.length;
+  const extraDone = EXTRA_QUESTS.filter(q=>state.done[q.id]).length;
+  document.getElementById('ringExtra').textContent = extraDone ? ("+" + extraDone + " extra" + (extraDone===1?"":"s")) : "";
+
+  /* desafío del día */
+  const ch = todaysChallenge();
+  const chDone = state.challengeDate === todayStr();
+  const chCard = document.getElementById('challengeCard');
+  chCard.className = 'challenge' + (chDone ? ' done' : '');
+  chCard.innerHTML = `
+    <div class="cic">${chDone ? '✅' : ch.icon}</div>
+    <div>
+      <div class="ct">${chDone ? 'Desafío conseguido' : 'Desafío del día'}</div>
+      <div class="cd">${ch.text}</div>
+      <div class="cx">${chDone ? ('Cobrado: +' + state.challengeXp + ' XP') : ('Recompensa: +' + ch.xp + ' XP × multiplicador')}</div>
+    </div>`;
+
+  /* cadena de jefes */
+  document.getElementById('chainBar').innerHTML = CHAIN_BONUSES.map(b=>{
+    const got = state.dayBonus[b.id] != null;
+    return `<div class="chainpill ${got?'on':''}">
+      <div class="cn">${b.icon} ${b.label}</div>
+      <div class="cv">${got ? ('+' + state.dayBonus[b.id] + ' XP') : ('+' + b.xp + ' XP')}</div>
+    </div>`;
+  }).join('');
 
   /* recomendaciones */
   document.getElementById('recoScroll').innerHTML = buildRecommendations().map(c=>`
@@ -1134,24 +1645,40 @@ function render(){
   /* misiones */
   document.getElementById('questList').innerHTML = SECTIONS.map(([label, ids])=>{
     const d = ids.filter(id=>state.done[id]).length;
-    const rows = ids.map(id=>{
-      const q = QUESTS.find(x=>x.id===id);
-      const on = !!state.done[id];
-      const key = id === STREAK_TRIGGER;
-      return `<div class="quest ${q.boss?'boss':''} ${key?'keystone':''} ${on?'done':''}">
-        <div class="check ${on?'on':''}" onclick="toggle('${id}', event)">${on?'✓':''}</div>
-        <div class="qbody">
-          <div class="qtitle">${q.title}<span class="tag ${q.cat}">${CATS[q.cat].short}</span>${key?'<span class="keypill">🔥 RACHA</span>':''}</div>
-          <div class="qmeta">${q.time} · ${q.meta}</div>
-        </div>
-        <div class="xpval">+${q.xp}</div>
-      </div>`;
-    }).join('');
+    const rows = ids.map(id=>questRow(QUESTS.find(x=>x.id===id), false)).join('');
     return `<div class="grp"><div class="grphead"><span>${label}</span><span class="${d===ids.length?'gdone':''}">${d}/${ids.length}</span></div>${rows}</div>`;
   }).join('');
 
-  /* premios */
+  /* misiones extra */
+  document.getElementById('extraList').innerHTML = EXTRA_QUESTS.map(q=>questRow(q, true)).join('');
+
+  /* tienda */
   document.getElementById('coinsTxt').textContent = state.coins;
+  document.getElementById('shopPowers').innerHTML = SHOP.filter(i=>i.kind==='power').map(it=>{
+    const extra = it.id === 'shield' ? (" · Tienes " + state.shields + "/3")
+                : it.id === 'boost'  ? (state.boostDate === todayStr() ? " · ACTIVO HOY" : "") : "";
+    const can = state.coins >= it.cost;
+    return `<div class="shopitem">
+      <div class="sic">${it.icon}</div>
+      <div class="sb"><div class="sn">${it.name}</div><div class="sd">${it.desc}${extra}</div></div>
+      <button class="buybtn" onclick="buy('${it.id}')" ${can?'':'disabled'}>${it.cost} 🪙</button>
+    </div>`;
+  }).join('');
+  document.getElementById('shopSkins').innerHTML = SHOP.filter(i=>i.kind==='skin').map(it=>{
+    const owned = state.skins.includes(it.id);
+    const eq = owned && state.activeSkin === it.skin;
+    const can = state.coins >= it.cost;
+    const btn = owned
+      ? `<button class="buybtn alt" onclick="equipSkin('${it.id}')">${eq?'Quitar':'Equipar'}</button>`
+      : `<button class="buybtn" onclick="buy('${it.id}')" ${can?'':'disabled'}>${it.cost} 🪙</button>`;
+    return `<div class="shopitem ${owned?'owned':''} ${eq?'equipped':''}">
+      <div class="sic">${it.icon}</div>
+      <div class="sb"><div class="sn">${it.name}</div><div class="sd">${it.desc}</div></div>
+      ${btn}
+    </div>`;
+  }).join('');
+
+  /* premios reales */
   document.getElementById('rewardsList').innerHTML = state.rewards.map((r,i)=>{
     const ok = state.coins >= r.cost;
     return `<div class="reward ${ok?'':'locked'}">
@@ -1165,6 +1692,8 @@ function render(){
   document.getElementById('perfectTxt').textContent      = state.perfectDays;
   document.getElementById('totalQuestsTxt').textContent  = state.totalQuestsCompleted;
   document.getElementById('totalXpTxt').textContent      = state.totalXpEarned;
+  document.getElementById('cyclesTxt').textContent       = state.cyclesTotal;
+  document.getElementById('bestMultTxt').textContent     = "x" + Number(state.bestMultiplier).toFixed(2);
 
   /* mapa de calor: 6 días de historial + hoy en vivo */
   const days = ['D','L','M','X','J','V','S'];
@@ -1182,11 +1711,18 @@ function render(){
     return `<div class="hcol"><div class="hbox" style="${bg}${ring}">${icon}</div><div class="hlbl">${dow}</div></div>`;
   }).join('');
 
+  /* semana */
+  const weekDone = cells.filter(c=>c.trigger).length;
+  document.getElementById('weekTxt').textContent = weekDone + " / 7";
+  document.getElementById('weekBar').style.width = (weekDone/7*100) + '%';
+
   /* logros */
   document.getElementById('achGrid').innerHTML = ACHIEVEMENTS.map(a=>{
     const on = state.achievements.includes(a.id);
     return `<div class="ach ${on?'unlocked':''}"><span class="aic">${a.icon}</span>${a.label}</div>`;
   }).join('');
+
+  renderFocus();
 }
 
 /* ================= NAV ================= */
@@ -1195,7 +1731,7 @@ document.querySelectorAll('.navbtn').forEach(btn=>{
     document.querySelectorAll('.navbtn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     currentView = btn.dataset.view;
-    ['quests','stats','rewards','info'].forEach(n=>{
+    ['quests','stats','shop','info'].forEach(n=>{
       document.getElementById('view-'+n).hidden = (n !== currentView);
     });
     scrollTo({top:0, behavior:'smooth'});
@@ -1209,6 +1745,9 @@ setInterval(()=>{
   else render();
 }, 60000);
 
+/* El temporizador de foco se refresca cada segundo */
+setInterval(tickFocus, 1000);
+
 /* Y también al volver a la app desde segundo plano */
 document.addEventListener('visibilitychange', ()=>{
   if(!document.hidden){
@@ -1217,8 +1756,23 @@ document.addEventListener('visibilitychange', ()=>{
   }
 });
 
-checkAchievements();
-render();
+/* Service worker: hace que la app abra sin internet y que Windows/Android
+   ofrezcan instalarla como aplicación. Solo en https (GitHub Pages). */
+if('serviceWorker' in navigator && location.protocol === 'https:'){
+  addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+
+/* Arranque */
+(function boot(){
+  /* Si el bono de día perfecto de anoche subió de nivel, se cobra aquí */
+  const before = levelUpCheck();
+  if(before !== null) save();
+  checkAchievements();
+  render();
+  if(before !== null) setTimeout(()=>showLevelup(state.level, before), 400);
+  bootMsgs.forEach((m,i)=>setTimeout(()=>toast(m), 600 + i*2600));
+  bootMsgs = [];
+})();
 </script>
 </body>
 </html>
