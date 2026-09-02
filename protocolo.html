@@ -16,106 +16,74 @@
 <style>
 /* ============================================================
    PROTOCOLO STARK — consola de operaciones diarias de Waltin
-   Un solo mundo visual: pantalla HUD. Todo se pinta explícito.
    ============================================================ */
 :root{
-  --void:#04070e;
-  --panel:#0a1220;
-  --panel-hi:#0e1b2d;
-  --line:#16304a;
-  --line-soft:#0f2135;
-  --cyan:#35e3ff;
-  --cyan-deep:#0a7f9e;
-  --gold:#ffb020;
-  --ember:#ff4d2e;
-  --mint:#35ffb0;
-  --text:#d8ecf7;
-  --dim:#6c8ba6;
-  --dimmer:#3d5871;
+  --void:#04070e; --panel:#0a1220; --panel-hi:#0e1b2d;
+  --line:#16304a; --line-soft:#0f2135;
+  --cyan:#35e3ff; --cyan-deep:#0a7f9e;
+  --gold:#ffb020; --ember:#ff4d2e; --mint:#35ffb0; --violet:#a855f7;
+  --text:#d8ecf7; --dim:#6c8ba6; --dimmer:#3d5871;
   --mark:#35e3ff;
   --safe-b:env(safe-area-inset-bottom,0px);
   --safe-t:env(safe-area-inset-top,0px);
-  --hud: clip-path polygon;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{background:var(--void);-webkit-text-size-adjust:100%;}
 body{
-  margin:0;
-  background:var(--void);
-  color:var(--text);
+  margin:0;background:var(--void);color:var(--text);
   font-family:'Rajdhani','Segoe UI',system-ui,-apple-system,sans-serif;
-  font-size:16px;
-  line-height:1.45;
-  min-height:100vh;
+  font-size:16px;line-height:1.45;min-height:100vh;
   padding-bottom:calc(86px + var(--safe-b));
-  overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+  user-select:none;-webkit-user-select:none;
 }
+input,textarea{user-select:text;-webkit-user-select:text;}
 button{font-family:inherit;color:inherit;}
 :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
 
-/* --- atmósfera: rejilla + barrido + viñeta, todo detrás de todo --- */
 #grid,#scan,#vign{position:fixed;inset:0;pointer-events:none;}
-#grid{
-  z-index:0;opacity:.5;
-  background-image:
-    linear-gradient(var(--line-soft) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+#grid{z-index:0;opacity:.5;
+  background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
   background-size:44px 44px;
-  mask-image:radial-gradient(120% 80% at 50% 12%, #000 20%, transparent 78%);
-  -webkit-mask-image:radial-gradient(120% 80% at 50% 12%, #000 20%, transparent 78%);
-}
-#scan{
-  z-index:1;opacity:.22;
-  background:repeating-linear-gradient(180deg, rgba(53,227,255,.16) 0 1px, transparent 1px 4px);
-}
-#vign{
-  z-index:1;
-  background:radial-gradient(120% 90% at 50% 0%, transparent 40%, rgba(0,0,0,.75) 100%);
-}
+  mask-image:radial-gradient(120% 80% at 50% 12%,#000 20%,transparent 78%);
+  -webkit-mask-image:radial-gradient(120% 80% at 50% 12%,#000 20%,transparent 78%);}
+#scan{z-index:1;opacity:.2;background:repeating-linear-gradient(180deg,rgba(53,227,255,.16) 0 1px,transparent 1px 4px);}
+#vign{z-index:1;background:radial-gradient(120% 90% at 50% 0%,transparent 40%,rgba(0,0,0,.75) 100%);}
 #particles{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.75;}
 
-/* --- esquinas del visor --- */
-.visor{position:fixed;z-index:30;width:26px;height:26px;border:2px solid var(--cyan);opacity:.45;pointer-events:none;}
+.visor{position:fixed;z-index:30;width:26px;height:26px;border:2px solid var(--mark);opacity:.4;pointer-events:none;transition:border-color .6s;}
 .visor.tl{top:calc(6px + var(--safe-t));left:6px;border-right:0;border-bottom:0;}
 .visor.tr{top:calc(6px + var(--safe-t));right:6px;border-left:0;border-bottom:0;}
 .visor.bl{bottom:calc(78px + var(--safe-b));left:6px;border-right:0;border-top:0;}
 .visor.br{bottom:calc(78px + var(--safe-b));right:6px;border-left:0;border-top:0;}
 
 .shell{position:relative;z-index:5;max-width:560px;margin:0 auto;padding:calc(18px + var(--safe-t)) 18px 20px;}
-
-/* --- tipografía de sistema --- */
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
 .disp{font-family:'Orbitron','Rajdhani',sans-serif;}
-.eyebrow{
-  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;
-  color:var(--dim);display:flex;align-items:center;gap:9px;margin:0 0 12px;
-}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--dim);display:flex;align-items:center;gap:9px;margin:0 0 12px;}
 .eyebrow::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent);}
-.eyebrow b{color:var(--cyan);font-weight:400;}
+.eyebrow b{color:var(--mark);font-weight:400;}
+.eyebrow button{background:none;border:1px solid var(--line);color:var(--dim);font-family:inherit;font-size:9px;
+  letter-spacing:.14em;padding:4px 8px;cursor:pointer;}
+.eyebrow button:active{color:var(--cyan);border-color:var(--cyan);}
 
-/* --- barra de estado superior --- */
-.statusbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;}
-.clock{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;letter-spacing:.04em;color:var(--text);line-height:1;}
+.statusbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;}
+.clock{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;letter-spacing:.04em;line-height:1;}
 .date{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:5px;}
-.sysbtn{
-  background:transparent;border:1px solid var(--line);color:var(--dim);
-  width:38px;height:38px;font-size:15px;cursor:pointer;flex-shrink:0;
-  clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);
-  transition:color .18s,border-color .18s;
-}
+.sysbtn{background:transparent;border:1px solid var(--line);color:var(--dim);width:38px;height:38px;font-size:15px;cursor:pointer;flex-shrink:0;
+  clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px);}
 .sysbtn:active{color:var(--cyan);border-color:var(--cyan);}
 
-/* --- línea de J.A.R.V.I.S. --- */
-.jarvis{
-  border-left:2px solid var(--cyan);background:linear-gradient(90deg,rgba(53,227,255,.10),transparent 85%);
-  padding:11px 14px;margin-bottom:18px;
-}
-.jarvis .who{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.28em;color:var(--cyan);}
-.jarvis .say{font-size:15.5px;font-weight:500;line-height:1.35;margin-top:3px;color:var(--text);}
+.jarvis{border-left:2px solid var(--mark);background:linear-gradient(90deg,rgba(53,227,255,.10),transparent 85%);
+  padding:11px 14px;margin-bottom:16px;cursor:pointer;transition:border-color .6s;}
+.jarvis .who{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.28em;color:var(--mark);}
+.jarvis .say{font-size:15.5px;font-weight:500;line-height:1.35;margin-top:3px;}
+.jarvis.flash{animation:jflash .5s ease-out;}
+@keyframes jflash{0%{background:rgba(53,227,255,.28);}100%{background:linear-gradient(90deg,rgba(53,227,255,.10),transparent 85%);}}
 
-/* --- REACTOR --- */
-.reactor-wrap{position:relative;display:flex;justify-content:center;margin:4px 0 6px;}
+/* ---- REACTOR ---- */
+.reactor-wrap{position:relative;display:flex;justify-content:center;margin:2px 0 4px;}
 .reactor{width:228px;height:228px;position:relative;cursor:pointer;}
 .reactor svg{width:100%;height:100%;display:block;overflow:visible;}
 .r-spin-a{transform-origin:125px 125px;animation:spin 26s linear infinite;}
@@ -127,93 +95,96 @@ button{font-family:inherit;color:inherit;}
 .reactor.kick .r-core{animation:corekick .7s cubic-bezier(.2,1.6,.35,1);}
 @keyframes corekick{0%{transform:scale(1);}38%{transform:scale(1.3);}100%{transform:scale(1);}}
 .r-readout{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
-.r-pct{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;line-height:1;color:var(--text);text-shadow:0 0 26px rgba(53,227,255,.55);}
-.r-pct span{font-size:15px;color:var(--cyan);}
+.r-pct{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;line-height:1;text-shadow:0 0 26px rgba(53,227,255,.55);}
+.r-pct span{font-size:15px;color:var(--mark);}
 .r-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.2em;color:var(--dim);margin-top:5px;}
-.r-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);margin-top:2px;letter-spacing:.1em;}
+.r-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mark);margin-top:2px;letter-spacing:.1em;}
 
-/* --- ficha de MARK / nivel --- */
-.markbar{
-  border:1px solid var(--line);background:var(--panel);
-  padding:14px 16px;margin:10px 0 16px;
-  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
-}
+/* ---- LO QUE FALTA: presión de cierre ---- */
+.pressure{border:1px solid var(--line);background:var(--panel);padding:11px 14px;margin:8px 0 14px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);}
+.pressure.hot{border-color:var(--gold);background:linear-gradient(110deg,rgba(255,176,32,.14),var(--panel));animation:hotpulse 2.2s ease-in-out infinite;}
+.pressure.final{border-color:var(--ember);background:linear-gradient(110deg,rgba(255,77,46,.18),var(--panel));}
+@keyframes hotpulse{0%,100%{box-shadow:0 0 0 rgba(255,176,32,0);}50%{box-shadow:0 0 20px rgba(255,176,32,.28);}}
+.pressure .p-n{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;line-height:1;color:var(--gold);}
+.pressure.final .p-n{color:var(--ember);}
+.pressure .p-t{font-size:13.5px;line-height:1.35;}
+.pressure .p-s{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:3px;}
+
+.markbar{border:1px solid var(--line);background:var(--panel);padding:14px 16px;margin:0 0 14px;
+  clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);}
 .markrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
 .markname{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:700;color:var(--mark);letter-spacing:.05em;}
-.marksub{font-size:13px;color:var(--dim);letter-spacing:.05em;}
+.marksub{font-size:13px;color:var(--dim);}
 .marklvl{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--dim);white-space:nowrap;}
 .marklvl b{color:var(--text);}
-.track{height:6px;background:#08111d;border:1px solid var(--line-soft);margin-top:11px;position:relative;overflow:hidden;}
-.track>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan-deep),var(--cyan));box-shadow:0 0 14px rgba(53,227,255,.8);transition:width .7s cubic-bezier(.2,.9,.3,1);}
+.track{height:6px;background:#08111d;border:1px solid var(--line-soft);margin-top:11px;overflow:hidden;}
+.track>i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan-deep),var(--mark));box-shadow:0 0 14px rgba(53,227,255,.8);transition:width .7s cubic-bezier(.2,.9,.3,1);}
 .energyline{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim);margin-top:7px;letter-spacing:.08em;}
 .energyline b{color:var(--gold);}
 
-/* --- fila de indicadores --- */
-.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-.gauge{
-  border:1px solid var(--line);background:var(--panel);padding:12px 11px;
-  clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);
-}
+.gauges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.gauge{border:1px solid var(--line);background:var(--panel);padding:12px 11px;
+  clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);}
 .gauge .g-l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.2em;color:var(--dim);}
-.gauge .g-v{font-family:'Orbitron',sans-serif;font-size:23px;font-weight:700;line-height:1.1;margin-top:6px;}
-.gauge .g-x{font-size:12px;color:var(--dim);letter-spacing:.06em;margin-top:2px;}
+.gauge .g-v{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:700;line-height:1.1;margin-top:6px;}
+.gauge .g-x{font-size:11.5px;color:var(--dim);margin-top:2px;line-height:1.25;}
 .gauge.streak .g-v{color:var(--ember);}
 .gauge.streak.cold .g-v{color:var(--dimmer);}
 .gauge.over .g-v{color:var(--gold);}
-.gauge.core .g-v{color:var(--cyan);}
+.gauge.over.boosted{border-color:var(--gold);animation:hotpulse 2s ease-in-out infinite;}
+.gauge.combo .g-v{color:var(--violet);}
+.gauge.combo.cold .g-v{color:var(--dimmer);}
 
-/* --- misión destacada: qué toca AHORA --- */
-.now{
-  border:1px solid var(--cyan);background:linear-gradient(135deg,rgba(53,227,255,.13),rgba(10,18,32,.9) 60%);
-  padding:16px;margin-bottom:22px;position:relative;
-  clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);
-}
+.now{border:1px solid var(--mark);background:linear-gradient(135deg,rgba(53,227,255,.13),rgba(10,18,32,.9) 60%);
+  padding:16px;margin-bottom:20px;transition:border-color .6s;
+  clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);}
 .now.idle{border-color:var(--line);background:var(--panel);}
-.now .n-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.26em;color:var(--cyan);}
+.now .n-tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.26em;color:var(--mark);}
 .now.idle .n-tag{color:var(--dim);}
 .now .n-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;margin:7px 0 4px;line-height:1.25;}
 .now .n-why{font-size:14px;color:var(--dim);line-height:1.4;}
-.now .n-act{
-  margin-top:14px;width:100%;background:var(--cyan);border:0;color:#022;
-  font-family:'Orbitron',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;
-  padding:13px;cursor:pointer;
-  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-}
-.now .n-act:active{transform:translateY(1px);background:#8ff2ff;}
-.now .n-timer{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);margin-top:9px;letter-spacing:.08em;}
+.now .n-timer{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--gold);margin-top:9px;letter-spacing:.06em;}
+.n-acts{display:flex;gap:8px;margin-top:13px;}
+.n-act{flex:1;background:var(--mark);border:0;color:#021018;font-family:'Orbitron',sans-serif;font-weight:700;
+  font-size:12.5px;letter-spacing:.08em;padding:13px 8px;cursor:pointer;
+  clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);}
+.n-act:active{transform:translateY(1px);}
+.n-act.ghost{background:transparent;border:1px solid var(--mark);color:var(--mark);flex:0 0 auto;padding:13px 14px;}
 
-/* --- módulos de protocolo --- */
-.phase{margin-bottom:8px;}
-.phase-h{
-  display:flex;align-items:center;gap:10px;margin:22px 0 10px;
-  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;
-}
+.seq{display:grid;grid-template-columns:repeat(auto-fit,minmax(84px,1fr));gap:8px;margin-bottom:6px;}
+.seqcell{border:1px solid var(--line);background:var(--panel);padding:11px 8px;text-align:center;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);}
+.seqcell .s-n{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:700;line-height:1.2;}
+.seqcell .s-v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:4px;}
+.seqcell.got{border-color:var(--gold);background:linear-gradient(160deg,rgba(255,176,32,.14),var(--panel));}
+.seqcell.got .s-n,.seqcell.got .s-v{color:var(--gold);}
+
+.phase-h{display:flex;align-items:center;gap:10px;margin:20px 0 10px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;}
 .phase-h .bar{flex:1;height:1px;background:var(--line);}
-.phase-h .cnt{color:var(--cyan);}
+.phase-h .cnt{color:var(--mark);}
 .phase-h .cnt.full{color:var(--mint);}
 
-.mod{
-  position:relative;display:flex;align-items:stretch;gap:0;margin-bottom:7px;
-  border:1px solid var(--line);background:var(--panel);
+.mod{position:relative;display:flex;margin-bottom:7px;border:1px solid var(--line);background:var(--panel);overflow:hidden;
   clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-  transition:border-color .2s,background .2s,opacity .3s;
-}
+  transition:border-color .2s,background .2s,opacity .3s;}
 .mod .rail{width:4px;background:var(--line);flex-shrink:0;transition:background .3s,box-shadow .3s;}
 .mod .body{flex:1;min-width:0;padding:12px 13px;cursor:pointer;}
 .mod .m-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
-.mod .m-time{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.06em;white-space:nowrap;}
+.mod .m-time{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--dim);white-space:nowrap;}
 .mod .m-e{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);white-space:nowrap;}
 .mod .m-name{font-size:16px;font-weight:600;line-height:1.28;margin-top:3px;}
 .mod .m-note{font-size:13px;color:var(--dim);line-height:1.35;margin-top:2px;}
 .mod .m-sys{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--dimmer);margin-top:6px;}
-.mod .led{
-  width:44px;flex-shrink:0;border-left:1px solid var(--line-soft);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;
-}
-.mod .led i{
-  display:block;width:13px;height:13px;border:2px solid var(--dimmer);border-radius:50%;
-  transition:background .25s,border-color .25s,box-shadow .25s;
-}
+.mod .m-sys .go{color:var(--mark);}
+.mod .led{width:48px;flex-shrink:0;border-left:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.mod .led i{display:block;width:14px;height:14px;border:2px solid var(--dimmer);border-radius:50%;transition:background .25s,border-color .25s,box-shadow .25s,transform .2s;}
+.mod .led svg{position:absolute;inset:0;margin:auto;width:34px;height:34px;transform:rotate(-90deg);pointer-events:none;}
+.mod .led .hold{stroke-dasharray:88;stroke-dashoffset:88;}
+.mod.holding .led .hold{transition:stroke-dashoffset .62s linear;stroke-dashoffset:0;}
+.mod.holding .led i{transform:scale(.72);}
 .mod:active{background:var(--panel-hi);}
 .mod.core-mod{border-color:rgba(53,227,255,.42);}
 .mod.core-mod .rail{background:var(--cyan-deep);}
@@ -226,35 +197,19 @@ button{font-family:inherit;color:inherit;}
 .mod.on .led i{background:var(--mint);border-color:var(--mint);box-shadow:0 0 12px rgba(53,255,176,.9);}
 .mod.on .m-name{text-decoration:line-through;text-decoration-thickness:1px;color:var(--dim);}
 .mod.opt{border-style:dashed;}
-/* barrido de energía al completar */
-.mod .sweep{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(53,255,176,.35),transparent);}
-.mod.fire .sweep{animation:sweep .65s ease-out;}
+.mod .sweep{position:absolute;inset:0;pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,rgba(53,255,176,.4),transparent);}
+.mod.fire .sweep{animation:sweep .6s ease-out;}
 @keyframes sweep{0%{opacity:1;transform:translateX(-100%);}100%{opacity:0;transform:translateX(100%);}}
-.badge{
-  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.16em;
-  padding:2px 6px;margin-left:7px;vertical-align:2px;border:1px solid currentColor;
-}
+.badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.14em;
+  padding:2px 6px;margin-left:6px;vertical-align:2px;border:1px solid currentColor;}
 .badge.streak{color:var(--ember);}
 .badge.pay{color:var(--gold);}
-.badge.seq{color:var(--cyan);}
+.badge.seq{color:var(--mark);}
 
-/* --- secuencia de núcleos --- */
-.seq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px;}
-.seqcell{
-  border:1px solid var(--line);background:var(--panel);padding:11px 9px;text-align:center;
-  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
-}
-.seqcell .s-n{font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.04em;}
-.seqcell .s-v{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);margin-top:4px;}
-.seqcell.got{border-color:var(--gold);background:linear-gradient(160deg,rgba(255,176,32,.14),var(--panel));}
-.seqcell.got .s-n{color:var(--gold);}
-.seqcell.got .s-v{color:var(--gold);}
-
-/* --- sistemas (atributos) --- */
 .sysgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
 .sys{border:1px solid var(--line);background:var(--panel);padding:12px;
   clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);}
-.sys .s-h{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.16em;color:var(--dim);}
+.sys .s-h{display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;color:var(--dim);}
 .sys .s-h b{color:var(--text);font-size:11px;}
 .sys .s-bar{height:5px;background:#08111d;margin-top:9px;overflow:hidden;}
 .sys .s-bar>i{display:block;height:100%;transition:width .6s cubic-bezier(.2,.9,.3,1);}
@@ -263,57 +218,43 @@ button{font-family:inherit;color:inherit;}
 .sys.mente .s-bar>i{background:#8b9dff;box-shadow:0 0 10px rgba(139,157,255,.6);}
 .sys.disc .s-bar>i{background:var(--gold);box-shadow:0 0 10px rgba(255,176,32,.6);}
 
-/* --- arsenal --- */
-.credit{
-  border:1px solid var(--gold);background:linear-gradient(120deg,rgba(255,176,32,.12),var(--panel));
-  padding:15px 17px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;
-  clip-path:polygon(15px 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%,0 15px);
-}
+.credit{border:1px solid var(--gold);background:linear-gradient(120deg,rgba(255,176,32,.12),var(--panel));
+  padding:15px 17px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;
+  clip-path:polygon(15px 0,100% 0,100% calc(100% - 15px),calc(100% - 15px) 100%,0 100%,0 15px);}
 .credit .c-l{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.24em;color:var(--dim);}
 .credit .c-v{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;color:var(--gold);line-height:1.1;}
-.item{
-  border:1px solid var(--line);background:var(--panel);padding:13px 14px;margin-bottom:9px;
-  display:flex;gap:13px;align-items:center;
-  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-}
+.item{border:1px solid var(--line);background:var(--panel);padding:13px 14px;margin-bottom:9px;display:flex;gap:13px;align-items:center;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);}
 .item.owned{border-color:rgba(53,255,176,.45);}
 .item.eq{border-color:var(--gold);background:linear-gradient(120deg,rgba(255,176,32,.12),var(--panel));}
-.item .i-ic{width:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.item .i-ic{width:32px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
 .item .i-ic svg{width:26px;height:26px;}
 .item .i-b{flex:1;min-width:0;}
 .item .i-n{font-size:15px;font-weight:600;}
 .item .i-d{font-size:12.5px;color:var(--dim);line-height:1.4;margin-top:2px;}
-.item .i-btn{
-  background:transparent;border:1px solid var(--gold);color:var(--gold);
-  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.08em;
-  padding:9px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;
-}
-.item .i-btn:disabled{border-color:var(--line);color:var(--dimmer);cursor:default;}
-.item .i-btn.alt{border-color:var(--cyan);color:var(--cyan);}
+.item .i-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'JetBrains Mono',monospace;
+  font-size:11px;font-weight:700;letter-spacing:.08em;padding:9px 12px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.item .i-btn:disabled{border-color:var(--line);color:var(--dimmer);}
+.item .i-btn.alt{border-color:var(--mark);color:var(--mark);}
 .addrow{display:flex;gap:8px;margin-top:12px;}
-.addrow input{
-  flex:1;min-width:0;background:#08111d;border:1px solid var(--line);color:var(--text);
-  padding:11px 12px;font-family:'Rajdhani',sans-serif;font-size:15px;
-}
+.addrow input{flex:1;min-width:0;background:#08111d;border:1px solid var(--line);color:var(--text);padding:11px 12px;font-family:'Rajdhani',sans-serif;font-size:15px;}
 .addrow input::placeholder{color:var(--dimmer);}
-.addrow button{
-  background:transparent;border:1px solid var(--cyan);color:var(--cyan);
-  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;padding:11px 15px;cursor:pointer;
-}
+.addrow button{background:transparent;border:1px solid var(--mark);color:var(--mark);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.1em;padding:11px 15px;cursor:pointer;}
 
-/* --- registro --- */
-.recgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;}
-.rec{border:1px solid var(--line);background:var(--panel);padding:13px;
+.recgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.rec{border:1px solid var(--line);background:var(--panel);padding:13px;position:relative;
   clip-path:polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);}
-.rec .r-l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--dim);}
-.rec .r-v{font-family:'Orbitron',sans-serif;font-size:25px;font-weight:700;margin-top:6px;color:var(--text);}
-.week{display:flex;gap:6px;margin-bottom:22px;}
+.rec.pr{border-color:var(--gold);}
+.rec .r-l{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--dim);}
+.rec .r-v{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;margin-top:6px;}
+.rec.pr .r-v{color:var(--gold);}
+.week{display:flex;gap:6px;margin-bottom:20px;}
 .week .d{flex:1;text-align:center;}
 .week .d .box{height:40px;border:1px solid var(--line);background:#08111d;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dimmer);}
 .week .d .box.hit{border-color:var(--ember);background:rgba(255,77,46,.14);color:var(--ember);}
 .week .d .box.full{border-color:var(--gold);background:rgba(255,176,32,.16);color:var(--gold);}
-.week .d .box.today{box-shadow:0 0 0 1px var(--cyan) inset;}
-.week .d .lb{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);margin-top:4px;letter-spacing:.1em;}
+.week .d .box.today{box-shadow:0 0 0 1px var(--mark) inset;}
+.week .d .lb{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);margin-top:4px;}
 .medals{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px;}
 .medal{border:1px solid var(--line);background:var(--panel);padding:12px 8px;text-align:center;opacity:.42;}
 .medal.got{opacity:1;border-color:var(--gold);background:linear-gradient(160deg,rgba(255,176,32,.10),var(--panel));}
@@ -321,58 +262,42 @@ button{font-family:inherit;color:inherit;}
 .medal .m-t{font-size:12px;color:var(--dim);line-height:1.3;margin-top:5px;}
 .medal.got .m-t{color:var(--text);}
 
-/* --- manual --- */
 .doc{border:1px solid var(--line);background:var(--panel);padding:16px 17px;margin-bottom:11px;
   clip-path:polygon(13px 0,100% 0,100% calc(100% - 13px),calc(100% - 13px) 100%,0 100%,0 13px);}
-.doc h3{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--cyan);letter-spacing:.05em;margin:0 0 9px;}
-.doc p{margin:0 0 9px;font-size:15px;line-height:1.55;color:var(--text);}
+.doc h3{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--mark);margin:0 0 9px;}
+.doc p{margin:0 0 9px;font-size:15px;line-height:1.55;}
 .doc p:last-child{margin-bottom:0;}
 .doc b{color:var(--gold);font-weight:600;}
-.doc .k{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--cyan);}
+.doc .k{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--mark);}
 
-/* --- navegación --- */
-.nav{
-  position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:1px;
-  background:var(--line-soft);border-top:1px solid var(--line);
-  padding-bottom:var(--safe-b);
-  backdrop-filter:blur(12px);
-}
-.nav button{
-  flex:1;background:rgba(4,7,14,.94);border:0;color:var(--dimmer);cursor:pointer;
-  padding:13px 4px;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
-  display:flex;flex-direction:column;align-items:center;gap:6px;transition:color .18s,background .18s;
-}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;gap:1px;background:var(--line-soft);
+  border-top:1px solid var(--line);padding-bottom:var(--safe-b);backdrop-filter:blur(12px);}
+.nav button{flex:1;background:rgba(4,7,14,.94);border:0;color:var(--dimmer);cursor:pointer;padding:13px 4px;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+  display:flex;flex-direction:column;align-items:center;gap:6px;transition:color .18s,background .18s;}
 .nav button svg{width:19px;height:19px;}
-.nav button.on{color:var(--cyan);background:rgba(53,227,255,.09);}
+.nav button.on{color:var(--mark);background:rgba(53,227,255,.09);}
 
-/* --- superposiciones --- */
-.over{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(2,4,9,.93);backdrop-filter:blur(7px);}
+.over{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,4,9,.93);backdrop-filter:blur(7px);}
 .over.show{display:flex;}
-.sheet{
-  border:1px solid var(--cyan);background:var(--panel);padding:24px;max-width:400px;width:100%;
-  max-height:86vh;overflow-y:auto;position:relative;
-  clip-path:polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px);
-}
-.sheet h3{font-family:'Orbitron',sans-serif;font-size:15px;margin:0 0 16px;letter-spacing:.06em;color:var(--cyan);}
+.sheet{border:1px solid var(--mark);background:var(--panel);padding:22px;max-width:430px;width:100%;max-height:88vh;overflow-y:auto;position:relative;
+  clip-path:polygon(20px 0,100% 0,100% calc(100% - 20px),calc(100% - 20px) 100%,0 100%,0 20px);}
+.sheet h3{font-family:'Orbitron',sans-serif;font-size:15px;margin:0 0 16px;color:var(--mark);}
 .sheet .line{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line-soft);font-size:15px;}
-.sw{width:46px;height:24px;background:#0d1b2b;border:1px solid var(--line);position:relative;cursor:pointer;flex-shrink:0;transition:border-color .2s;}
+.sw{width:46px;height:24px;background:#0d1b2b;border:1px solid var(--line);position:relative;cursor:pointer;flex-shrink:0;}
 .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;background:var(--dimmer);transition:left .2s,background .2s;}
 .sw.on{border-color:var(--mint);}
 .sw.on::after{left:25px;background:var(--mint);}
-.sbtn{
-  display:block;width:100%;text-align:center;background:transparent;border:1px solid var(--line);
-  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;
-  padding:12px;margin-top:10px;cursor:pointer;
-}
-.sbtn.go{border-color:var(--cyan);color:var(--cyan);}
+.sbtn{display:block;width:100%;text-align:center;background:transparent;border:1px solid var(--line);color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.1em;padding:12px;margin-top:10px;cursor:pointer;}
+.sbtn.go{border-color:var(--mark);color:var(--mark);}
 .sbtn.bad{border-color:#5a2418;color:var(--ember);}
-.xbtn{position:absolute;top:16px;right:18px;background:none;border:0;color:var(--dim);font-size:20px;cursor:pointer;line-height:1;}
+.xbtn{position:absolute;top:14px;right:16px;background:none;border:0;color:var(--dim);font-size:20px;cursor:pointer;}
 
-/* ascenso de MARK */
 .ascend{text-align:center;max-width:340px;}
 .ascend .a-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.34em;color:var(--dim);}
 .ascend .a-m{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;color:var(--mark);margin:8px 0 2px;text-shadow:0 0 34px rgba(53,227,255,.6);}
-.ascend .a-s{font-size:16px;color:var(--text);margin-bottom:4px;}
+.ascend .a-s{font-size:16px;margin-bottom:4px;}
 .ascend .a-d{font-size:14px;color:var(--dim);line-height:1.5;}
 .ascend .a-r{width:170px;height:170px;margin:0 auto 10px;}
 .ascend .a-r svg{width:100%;height:100%;overflow:visible;}
@@ -380,34 +305,53 @@ button{font-family:inherit;color:inherit;}
 .ascend .a-li{border:1px solid var(--line);padding:10px 13px;display:flex;justify-content:space-between;font-size:14px;background:var(--panel);}
 .ascend .a-li b{color:var(--mint);font-family:'JetBrains Mono',monospace;font-size:13px;}
 
-/* protocolo de enfoque */
 .focus{text-align:center;max-width:360px;width:100%;}
-.focus .f-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.32em;color:var(--cyan);}
-.focus .f-t{font-family:'Orbitron',sans-serif;font-size:66px;font-weight:900;line-height:1;margin:10px 0 6px;color:var(--text);text-shadow:0 0 36px rgba(53,227,255,.5);font-variant-numeric:tabular-nums;}
-.focus .f-s{font-size:14.5px;color:var(--dim);line-height:1.5;margin-bottom:20px;}
-.focus .f-ring{width:180px;height:180px;margin:0 auto 6px;position:relative;}
-.focus .f-ring svg{width:100%;height:100%;}
-.focus .f-ring .f-in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;font-variant-numeric:tabular-nums;}
+.focus .f-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.32em;color:var(--mark);}
+.focus .f-t{font-family:'Orbitron',sans-serif;font-size:62px;font-weight:900;line-height:1;margin:10px 0 6px;text-shadow:0 0 36px rgba(53,227,255,.5);font-variant-numeric:tabular-nums;}
+.focus .f-s{font-size:14.5px;color:var(--dim);line-height:1.5;margin-bottom:18px;}
+.focus .f-row{display:flex;gap:8px;}
+.focus .f-row .sbtn{margin-top:0;}
 
-/* avisos */
-#hud-toast{
-  position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%) translateY(14px);
-  z-index:80;background:var(--panel);border:1px solid var(--cyan);color:var(--cyan);
-  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;
-  padding:11px 18px;max-width:88vw;text-align:center;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
-  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
-}
+/* --- caja de recompensa variable --- */
+.drop{text-align:center;max-width:320px;}
+.drop .d-k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.3em;color:var(--dim);}
+.drop .d-ic{font-family:'Orbitron',sans-serif;font-size:56px;font-weight:900;margin:12px 0 6px;animation:dropin .6s cubic-bezier(.2,1.6,.3,1);}
+@keyframes dropin{0%{transform:scale(.3) rotate(-12deg);opacity:0;}70%{transform:scale(1.12) rotate(3deg);opacity:1;}100%{transform:scale(1) rotate(0);}}
+.drop .d-n{font-family:'Orbitron',sans-serif;font-size:21px;font-weight:900;margin-bottom:6px;}
+.drop .d-d{font-size:15px;color:var(--dim);line-height:1.5;margin-bottom:18px;}
+
+/* --- editor de protocolos --- */
+.ed-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);padding:9px 10px;margin-bottom:7px;}
+.ed-row .e-b{flex:1;min-width:0;}
+.ed-row .e-n{font-size:14.5px;font-weight:600;line-height:1.25;}
+.ed-row .e-m{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);margin-top:2px;}
+.ed-row .e-act{display:flex;gap:4px;flex-shrink:0;}
+.ed-row .e-act button{background:transparent;border:1px solid var(--line);color:var(--dim);width:28px;height:28px;font-size:12px;cursor:pointer;padding:0;}
+.ed-row .e-act button:active{border-color:var(--mark);color:var(--mark);}
+.ed-form{border:1px solid var(--mark);background:#08111d;padding:12px;margin-bottom:10px;}
+.ed-form label{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.16em;color:var(--dim);margin:9px 0 4px;}
+.ed-form input,.ed-form select{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--text);
+  padding:9px 10px;font-family:'Rajdhani',sans-serif;font-size:15px;}
+.ed-form .two{display:flex;gap:8px;}
+.ed-form .two>div{flex:1;min-width:0;}
+
+#hud-toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%) translateY(14px);
+  z-index:80;background:var(--panel);border:1px solid var(--mark);color:var(--mark);
+  font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.05em;padding:11px 18px;max-width:88vw;
+  text-align:center;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);}
 #hud-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-#burst{position:fixed;inset:0;z-index:75;pointer-events:none;}
-.enfloat{position:fixed;z-index:78;pointer-events:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;color:var(--gold);text-shadow:0 0 14px rgba(255,176,32,.8);animation:enfly .95s ease-out forwards;}
+#hud-toast.pr{border-color:var(--gold);color:var(--gold);}
+#burst{position:fixed;inset:0;z-index:65;pointer-events:none;}
+.enfloat{position:fixed;z-index:78;pointer-events:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;
+  color:var(--gold);text-shadow:0 0 14px rgba(255,176,32,.8);animation:enfly .95s ease-out forwards;}
 @keyframes enfly{0%{opacity:1;transform:translateY(0) scale(.85);}30%{transform:translateY(-16px) scale(1.15);}100%{opacity:0;transform:translateY(-62px) scale(1);}}
 
-/* arranque del sistema */
 #boot{position:fixed;inset:0;z-index:95;background:var(--void);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
 #boot.gone{opacity:0;pointer-events:none;transition:opacity .5s;}
 #boot .b-ring{width:96px;height:96px;}
 #boot .b-ring svg{width:100%;height:100%;}
-#boot .b-txt{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.2em;color:var(--cyan);min-height:1.4em;}
+#boot .b-txt{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.2em;color:var(--mark);min-height:1.4em;}
 
 .warn{border:1px solid var(--ember);background:rgba(255,77,46,.10);color:#ffc3b6;padding:12px 14px;font-size:13.5px;line-height:1.5;margin-bottom:16px;}
 
@@ -439,12 +383,11 @@ button{font-family:inherit;color:inherit;}
     Este navegador no está guardando nada. Suele pasar en modo privado. Ábrelo en Safari o Chrome normal para conservar tu progreso.
   </div>
 
-  <div class="jarvis">
+  <div class="jarvis" id="jarvisBox" onclick="speak(true)">
     <div class="who mono">J.A.R.V.I.S.</div>
     <div class="say" id="jarvis">Sistema en línea.</div>
   </div>
 
-  <!-- ===== SECCIÓN: DÍA ===== -->
   <section id="sec-dia">
     <div class="reactor-wrap">
       <div class="reactor" id="reactor" onclick="pokeReactor()" role="img" aria-label="Reactor del día"></div>
@@ -454,6 +397,8 @@ button{font-family:inherit;color:inherit;}
         <div class="r-count mono" id="rCount">0 / 19</div>
       </div>
     </div>
+
+    <div class="pressure" id="pressure"></div>
 
     <div class="markbar">
       <div class="markrow">
@@ -473,59 +418,60 @@ button{font-family:inherit;color:inherit;}
         <div class="g-v disp" id="streakTxt">0</div>
         <div class="g-x" id="streakSub">días</div>
       </div>
-      <div class="gauge over">
+      <div class="gauge over" id="gOver">
         <div class="g-l mono">SOBRECARGA</div>
         <div class="g-v disp" id="multTxt">x1.00</div>
-        <div class="g-x" id="multSub">energía base</div>
+        <div class="g-x" id="multSub">base</div>
       </div>
-      <div class="gauge core">
-        <div class="g-l mono">NÚCLEOS</div>
-        <div class="g-v disp" id="coreTxt">0/3</div>
-        <div class="g-x">bloques hoy</div>
+      <div class="gauge combo" id="gCombo">
+        <div class="g-l mono">COMBO</div>
+        <div class="g-v disp" id="comboTxt">0</div>
+        <div class="g-x" id="comboSub">seguidos</div>
       </div>
     </div>
 
     <div class="now" id="nowCard"></div>
 
-    <div class="eyebrow mono">SECUENCIA DE NÚCLEOS <b id="seqNote"></b></div>
+    <div class="eyebrow mono">CADENA DE BONOS <b id="seqNote"></b></div>
     <div class="seq" id="seqBar"></div>
 
-    <div class="eyebrow mono" style="margin-top:22px;">PROTOCOLO DEL DÍA</div>
+    <div class="eyebrow mono" style="margin-top:20px;">
+      PROTOCOLO DEL DÍA <b id="listNote"></b>
+      <button onclick="openEditor()">EDITAR LISTA</button>
+    </div>
     <div id="protoList"></div>
 
-    <div class="eyebrow mono" style="margin-top:24px;">PROTOCOLOS SECUNDARIOS <b>OPCIONALES</b></div>
+    <div class="eyebrow mono" style="margin-top:22px;">SECUNDARIOS <b>OPCIONALES</b></div>
     <div id="optList"></div>
   </section>
 
-  <!-- ===== SECCIÓN: SISTEMAS ===== -->
   <section id="sec-sistemas" hidden>
     <div class="eyebrow mono">SISTEMAS DEL TRAJE</div>
     <div class="sysgrid" id="sysGrid"></div>
 
-    <div class="eyebrow mono" style="margin-top:24px;">ÚLTIMOS 7 DÍAS <b id="weekNote"></b></div>
+    <div class="eyebrow mono" style="margin-top:22px;">ÚLTIMOS 7 DÍAS <b id="weekNote"></b></div>
     <div class="week" id="week"></div>
 
-    <div class="eyebrow mono">REGISTRO</div>
+    <div class="eyebrow mono">RÉCORDS PERSONALES</div>
+    <div class="recgrid" id="prGrid"></div>
+
+    <div class="eyebrow mono">ACUMULADO</div>
     <div class="recgrid" id="recGrid"></div>
 
     <div class="eyebrow mono">CONDECORACIONES</div>
     <div class="medals" id="medals"></div>
   </section>
 
-  <!-- ===== SECCIÓN: ARSENAL ===== -->
   <section id="sec-arsenal" hidden>
     <div class="credit">
       <div><div class="c-l mono">CRÉDITOS</div><div class="c-v disp" id="credTxt">0</div></div>
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h6M9 14.5h6"/></svg>
     </div>
-
     <div class="eyebrow mono">MEJORAS DEL SISTEMA</div>
     <div id="shopPower"></div>
-
-    <div class="eyebrow mono" style="margin-top:24px;">NÚCLEOS DE COLOR</div>
+    <div class="eyebrow mono" style="margin-top:22px;">NÚCLEOS DE COLOR</div>
     <div id="shopSkin"></div>
-
-    <div class="eyebrow mono" style="margin-top:24px;">RECOMPENSAS REALES <b>TUYAS</b></div>
+    <div class="eyebrow mono" style="margin-top:22px;">RECOMPENSAS REALES <b>TUYAS</b></div>
     <div id="rewardList"></div>
     <div class="addrow">
       <input id="newReward" placeholder="Nueva recompensa…" aria-label="Nueva recompensa">
@@ -533,33 +479,34 @@ button{font-family:inherit;color:inherit;}
     </div>
   </section>
 
-  <!-- ===== SECCIÓN: MANUAL ===== -->
   <section id="sec-manual" hidden>
     <div class="doc">
-      <h3>Cómo funciona la energía</h3>
-      <p>Cada protocolo que completas genera <b>energía</b>. La energía sube tu nivel y también se acumula como <b>créditos</b> para gastar en el arsenal.</p>
-      <p>La <span class="k">SOBRECARGA</span> multiplica todo: <b>+2%</b> por cada día de racha (hasta +50%) y <b>+2%</b> por cada protocolo que ya completaste hoy (hasta +30%). Los protocolos de la noche valen mucho más que los de la mañana.</p>
+      <h3>Por qué esto engancha</h3>
+      <p>No es magia, es cómo funciona la cabeza: la dopamina se dispara con la <b>anticipación</b> y con lo <b>impredecible</b>, no con el premio en sí. Por eso aquí cada protocolo que completas puede soltar una <span class="k">CHISPA</span> al azar — créditos, energía extra, un estabilizador — y nunca sabes cuál toca.</p>
+      <p>Y por eso la app te avisa <b>cada vez que superas tu propio récord</b>: la mejora medible es el combustible.</p>
     </div>
     <div class="doc">
-      <h3>Los tres núcleos</h3>
-      <p><span class="k">NÚCLEO I</span> (9:45) marca tu racha en el instante en que lo completas. No hace falta esperar al día siguiente ni terminar nada más.</p>
-      <p><span class="k">NÚCLEO II</span> (13:45) es el bloque más duro del día y por eso es el mejor pagado: <b>70 de energía</b> más el bono <b>Segundo Aliento (+45)</b>, y <b>+70</b> más si ya hiciste el I.</p>
-      <p><span class="k">NÚCLEO III</span> (20:00) cierra la <b>Secuencia Completa: +140</b>. Los tres bonos se multiplican por tu sobrecarga.</p>
+      <h3>El efecto del último tramo</h3>
+      <p>Cuanto más cerca estás de terminar la lista, más fuerte empuja: cuando te faltan <b>5, 3 y 1</b>, el aviso cambia y el bono de <span class="k">DÍA COMPLETO (+200)</span> se pone a tiro. Es el mismo efecto de la tarjeta de sellos: nadie abandona a dos sellos del final.</p>
     </div>
     <div class="doc">
-      <h3>Protocolo de enfoque</h3>
-      <p>Los núcleos tienen un botón de <b>ENFOQUE</b>: 50 minutos de trabajo, 10 de pausa. Cada ciclo completo son <b>+18 de energía</b>.</p>
-      <p>Un bloque de 3 horas asusta; uno de 50 minutos no. El cronómetro sigue corriendo aunque cierres la app.</p>
+      <h3>Combo</h3>
+      <p>Completar protocolos seguidos en menos de <b>90 minutos</b> encadena un combo. Cada eslabón suma <b>+3%</b> de sobrecarga extra, hasta +30%. Se rompe si dejas pasar demasiado tiempo — mantener el ritmo paga.</p>
     </div>
     <div class="doc">
-      <h3>Si fallas un día</h3>
-      <p>Si un día no completas el NÚCLEO I, la racha vuelve a cero al día siguiente — salvo que tengas un <b>Estabilizador</b> del arsenal: se gasta solo y te salva ese día.</p>
-      <p>El resto de protocolos suman energía y suben tus sistemas, pero no rompen la racha si te los saltas.</p>
+      <h3>Arrancar es lo difícil</h3>
+      <p>En los núcleos tienes el botón <b>SOLO 5 MIN</b>. Cinco minutos, nada más. Casi siempre sigues de largo, y si no, ya ganaste energía igual. Es la forma de saltarse la parte más cara: empezar.</p>
+      <p>Después están los ciclos de <span class="k">50/10</span> completos, que dan <b>+18</b> cada uno.</p>
     </div>
     <div class="doc">
-      <h3>Tu progreso vive en este navegador</h3>
-      <p>Si borras los datos del navegador o cambias de teléfono, se pierde. Entra a <b>⚙ → Exportar copia</b> cada cierto tiempo y guarda el archivo.</p>
-      <p>Añádelo a la pantalla de inicio desde el botón de compartir de Safari para abrirlo como una app, a pantalla completa.</p>
+      <h3>La lista es tuya</h3>
+      <p>El botón <b>EDITAR LISTA</b> te deja añadir, cambiar, reordenar o borrar cualquier protocolo: nombre, hora, energía, sistema, si es núcleo, si es opcional. Los bonos se recalculan solos con tu lista.</p>
+      <p>Si la rompes, <b>Restaurar rutina original</b> la devuelve como estaba.</p>
+    </div>
+    <div class="doc">
+      <h3>La racha</h3>
+      <p>Sube en el instante en que completas el <span class="k">NÚCLEO I</span>. Si un día lo fallas, se rompe al día siguiente — salvo que tengas un <b>Estabilizador</b> del arsenal.</p>
+      <p>Tu progreso vive en este navegador. Haz <b>⚙ → Exportar copia</b> de vez en cuando.</p>
     </div>
   </section>
 </div>
@@ -598,14 +545,38 @@ button{font-family:inherit;color:inherit;}
   </div>
 </div>
 
+<div class="over" id="dropOver">
+  <div class="drop">
+    <div class="d-k mono">CHISPA DEL REACTOR</div>
+    <div class="d-ic disp" id="dropIcon">+</div>
+    <div class="d-n disp" id="dropName"></div>
+    <div class="d-d" id="dropDesc"></div>
+    <button class="sbtn go" onclick="closeDrop()">RECOGER</button>
+  </div>
+</div>
+
 <div class="over" id="focusOver">
   <div class="focus">
     <div class="f-k mono" id="fKick">PROTOCOLO DE ENFOQUE</div>
     <div class="f-t disp" id="fTime">50:00</div>
     <div class="f-s" id="fSub"></div>
     <button class="sbtn go" id="fBtn" onclick="focusPrimary()">INICIAR 50 MIN</button>
-    <button class="sbtn" onclick="closeFocus()">CERRAR — SIGUE CORRIENDO</button>
+    <div class="f-row">
+      <button class="sbtn" onclick="beginFocus('arranque')" id="fQuick">SOLO 5 MIN</button>
+      <button class="sbtn" onclick="closeFocus()">CERRAR</button>
+    </div>
     <button class="sbtn bad" onclick="abortFocus()">ABORTAR</button>
+  </div>
+</div>
+
+<div class="over" id="editorOver">
+  <div class="sheet">
+    <button class="xbtn" onclick="closeEditor()" aria-label="Cerrar">✕</button>
+    <h3>TU LISTA</h3>
+    <div id="edForm"></div>
+    <div id="edRows"></div>
+    <button class="sbtn go" onclick="newProtocol()">+ AÑADIR PROTOCOLO</button>
+    <button class="sbtn bad" onclick="restoreList()">RESTAURAR RUTINA ORIGINAL</button>
   </div>
 </div>
 
@@ -631,61 +602,43 @@ button{font-family:inherit;color:inherit;}
 
 <script>
 /* ============================================================
-   PROTOCOLO STARK — app nueva, datos propios.
-   Almacén propio; si encuentra la partida de la app anterior,
-   traslada nivel, energía y racha una sola vez.
+   PROTOCOLO STARK
+   Diseño conductual aplicado: recompensa variable (chispas),
+   gradiente de meta (presión de cierre), récords personales
+   anunciados al instante, combo por ritmo, y arranque de 5 min
+   para bajar el coste de empezar.
    ============================================================ */
 const KEY = "stark_protocolo_waltin_v1";
 const LEGACY_KEY = "rutina_rpg_waltin_v1";
-const STREAK_CORE = "core1";          // el protocolo que marca la racha
+const COMBO_WINDOW = 90 * 60000;   // 90 min para encadenar
 
-/* ---------- La rutina de Waltin ---------- */
-const PROTOCOLS = [
+/* ---------- Rutina base de Waltin (semilla editable) ---------- */
+const DEFAULT_LIST = [
   {id:"wake",    ph:"ARRANQUE",  t:"8:30",          n:"Despertar y tender la cama",      d:"El primer sistema que enciendes eres tú", sys:"disc",   e:6},
   {id:"posture", ph:"ARRANQUE",  t:"8:35",          n:"Postura y asimetría",             d:"10 min de corrección",                    sys:"cuerpo", e:6},
   {id:"walk",    ph:"ARRANQUE",  t:"8:45 – 9:15",   n:"Desayuno y caminata",             d:"30 min · luz directa y sangre en movimiento", sys:"cuerpo", e:12},
   {id:"shower",  ph:"ARRANQUE",  t:"9:20",          n:"Ducha",                           d:"13 min · después de caminar, no antes",   sys:"cuerpo", e:6},
   {id:"grat",    ph:"ARRANQUE",  t:"9:35",          n:"Agradecer por escrito",           d:"5 min · decide qué vas a mirar hoy",      sys:"mente",  e:6},
   {id:"pray",    ph:"ARRANQUE",  t:"9:40",          n:"Hablar con Dios",                 d:"5 min antes de entrar al núcleo",         sys:"mente",  e:6},
-
   {id:"core1",   ph:"NÚCLEO I",  t:"9:45 – 12:45",  n:"NÚCLEO I · Escribir · Grabar · Editar · Miniatura", d:"3h · tres ciclos de 50/10", sys:"creat", e:55, core:1},
-
   {id:"lunch",   ph:"RECARGA",   t:"12:45 – 13:30", n:"Comida y siesta",                 d:"45 min de recuperación de verdad",        sys:"cuerpo", e:12},
   {id:"med",     ph:"RECARGA",   t:"13:30",         n:"Meditar",                         d:"10-20 min · reinicio antes del bloque duro", sys:"mente", e:12},
-
   {id:"core2",   ph:"NÚCLEO II", t:"13:45 – 16:45", n:"NÚCLEO II · Escribir · Grabar · Editar · Miniatura", d:"3h · el bloque que más paga del día", sys:"creat", e:70, core:2},
-
   {id:"rest",    ph:"TALLER",    t:"16:45 – 17:15", n:"Paseo corto",                     d:"30 min para bajar revoluciones",          sys:"cuerpo", e:12},
   {id:"gym",     ph:"TALLER",    t:"17:15 – 18:35", n:"Gym",                             d:"1h20 · testosterona y cabeza limpia",     sys:"cuerpo", e:35},
   {id:"snack",   ph:"TALLER",    t:"18:35",         n:"Ducha y snack",                   d:"15 min",                                  sys:"cuerpo", e:6},
   {id:"dinner",  ph:"TALLER",    t:"18:50 – 19:30", n:"Cena",                            d:"40 min · come antes, no partas la noche", sys:"cuerpo", e:12},
   {id:"learn",   ph:"TALLER",    t:"19:30 – 20:00", n:"Curso · habilidades artísticas",  d:"30 min · rampa suave hacia el núcleo III", sys:"creat", e:22},
-
   {id:"core3",   ph:"NÚCLEO III",t:"20:00 – 22:30", n:"NÚCLEO III · Escribir · Grabar · Editar · Miniatura", d:"2.5h · si hay energía, extiéndelo a 3h", sys:"creat", e:55, core:3},
-
   {id:"read",    ph:"APAGADO",   t:"22:30",         n:"Leer",                            d:"30 min sin pantalla de trabajo",          sys:"mente",  e:12},
   {id:"night",   ph:"APAGADO",   t:"23:00",         n:"Postura de noche",                d:"10 min",                                  sys:"cuerpo", e:6},
-
   {id:"clean",   ph:"CONSTANTE", t:"todo el día",   n:"Sin pornografía",                 d:"El sistema que sostiene todos los demás", sys:"disc",   e:20},
-];
-
-const OPTIONAL = [
-  {id:"o_water",  t:"todo el día",  n:"2 litros de agua",              d:"La energía más barata que existe",     sys:"cuerpo", e:9},
-  {id:"o_sun",    t:"mañana",       n:"10 min de sol directo",         d:"Reloj biológico en hora",              sys:"cuerpo", e:9},
-  {id:"o_ship",   t:"cuando salga", n:"Publicar algo en el canal",     d:"Lo único que convierte trabajo en resultados", sys:"creat", e:45},
-  {id:"o_ideas",  t:"15 min",       n:"Ideas y analíticas del canal",  d:"Munición para los próximos videos",    sys:"creat",  e:14},
-  {id:"o_cold",   t:"al ducharte",  n:"30 s de agua fría al final",    d:"Golpe de disciplina en frío",          sys:"disc",   e:12},
-  {id:"o_sleep",  t:"00:30",        n:"Dormir antes de las 00:30",     d:"El núcleo I de mañana se decide esta noche", sys:"disc", e:14},
-];
-
-const ALL = PROTOCOLS.concat(OPTIONAL);
-const PHASES = ["ARRANQUE","NÚCLEO I","RECARGA","NÚCLEO II","TALLER","NÚCLEO III","APAGADO","CONSTANTE"];
-
-/* Bonos por encadenar núcleos. El II es el que más paga. */
-const CHAINS = [
-  {id:"wind", need:["core2"],                  e:45,  sys:"disc",  name:"SEGUNDO ALIENTO", note:"el bloque más duro, hecho"},
-  {id:"dual", need:["core1","core2"],          e:70,  sys:"creat", name:"DOBLE NÚCLEO",    note:"núcleo I + II el mismo día"},
-  {id:"full", need:["core1","core2","core3"],  e:140, sys:"creat", name:"SECUENCIA",       note:"los tres núcleos"},
+  {id:"o_water", ph:"EXTRA", opt:true, t:"todo el día",  n:"2 litros de agua",             d:"La energía más barata que existe",     sys:"cuerpo", e:9},
+  {id:"o_sun",   ph:"EXTRA", opt:true, t:"mañana",       n:"10 min de sol directo",        d:"Reloj biológico en hora",              sys:"cuerpo", e:9},
+  {id:"o_ship",  ph:"EXTRA", opt:true, t:"cuando salga", n:"Publicar algo en el canal",    d:"Lo único que convierte trabajo en resultados", sys:"creat", e:45},
+  {id:"o_ideas", ph:"EXTRA", opt:true, t:"15 min",       n:"Ideas y analíticas del canal", d:"Munición para los próximos videos",    sys:"creat",  e:14},
+  {id:"o_cold",  ph:"EXTRA", opt:true, t:"al ducharte",  n:"30 s de agua fría al final",   d:"Golpe de disciplina en frío",          sys:"disc",   e:12},
+  {id:"o_sleep", ph:"EXTRA", opt:true, t:"00:30",        n:"Dormir antes de las 00:30",    d:"El núcleo I de mañana se decide esta noche", sys:"disc", e:14},
 ];
 
 const SYSTEMS = {
@@ -695,41 +648,50 @@ const SYSTEMS = {
   disc:   {name:"CONTROL",   label:"Disciplina"},
 };
 
-/* 24 armaduras. El color tiñe el HUD entero. */
 const MARKS = [
-  {lv:1,    r:"I",     n:"Prototipo",        d:"Hecho con lo que había. Ya vuela.",           c:"#7c9bb5"},
-  {lv:3,    r:"II",    n:"Primer vuelo",     d:"Se congela a cierta altura. Sigue subiendo.", c:"#9fc3d6"},
-  {lv:5,    r:"III",   n:"Estable",          d:"Ya no se cae solo.",                          c:"#35e3ff"},
-  {lv:8,    r:"IV",    n:"Operativo",        d:"El traje responde a la primera.",             c:"#2fd3f2"},
-  {lv:12,   r:"V",     n:"Maletín",          d:"Listo en segundos, donde estés.",             c:"#35ffb0"},
-  {lv:16,   r:"VI",    n:"Reactor nuevo",    d:"Cambiaste el núcleo. Ya no te envenena.",     c:"#5ff0c0"},
-  {lv:20,   r:"VII",   n:"Despliegue",       d:"Llega antes de que lo pidas.",                c:"#ffd166"},
-  {lv:25,   r:"VIII",  n:"Serie",            d:"Ya no es un experimento. Es tu método.",      c:"#ffb020"},
-  {lv:30,   r:"IX",    n:"Blindaje",         d:"Los días malos rebotan.",                     c:"#ff9f1c"},
-  {lv:40,   r:"X",     n:"Precisión",        d:"Cero movimiento desperdiciado.",              c:"#ff7f11"},
-  {lv:50,   r:"XI",    n:"Autonomía",        d:"No dependes de tener ganas.",                 c:"#ff5d3b"},
-  {lv:65,   r:"XII",   n:"Silencioso",       d:"Trabajas sin anunciarlo.",                    c:"#ff4d2e"},
-  {lv:80,   r:"XIII",  n:"Enjambre",         d:"Varias piezas avanzando a la vez.",           c:"#f43f5e"},
-  {lv:100,  r:"XIV",   n:"Centurión",        d:"Cien niveles no los da la suerte.",           c:"#e879f9"},
-  {lv:125,  r:"XV",    n:"Bruto",            d:"Levantas cargas que antes te aplastaban.",    c:"#c084fc"},
-  {lv:150,  r:"XVI",   n:"Nocturno",         d:"El sistema trabaja aunque tú estés cansado.", c:"#a78bfa"},
-  {lv:200,  r:"XVII",  n:"Taller propio",    d:"Ya no haces videos. Construyes una obra.",    c:"#818cf8"},
-  {lv:250,  r:"XVIII", n:"Legión",           d:"Lo que empezaste te sobrevive un día.",       c:"#60a5fa"},
-  {lv:300,  r:"XIX",   n:"Inmersión",        d:"Entras al foco como quien respira.",          c:"#38bdf8"},
-  {lv:400,  r:"XX",    n:"Alta presión",     d:"Nada de lo que empiezas queda a medias.",     c:"#22d3ee"},
-  {lv:500,  r:"XXI",   n:"Medianoche",       d:"Mitad del camino. Ya eres otro.",             c:"#2dd4bf"},
-  {lv:650,  r:"XXII",  n:"Hiperveloz",       d:"Lo que te costaba una semana sale en un día.",c:"#34d399"},
-  {lv:800,  r:"XXIII", n:"Órbita",           d:"Juegas un juego que casi nadie entiende.",    c:"#a3e635"},
-  {lv:1000, r:"XXIV",  n:"Leyenda",          d:"Nivel 1000. Pídeme el siguiente tramo.",      c:"#ffd700"},
+  {lv:1,    r:"I",     n:"Prototipo",     d:"Hecho con lo que había. Ya vuela.",           c:"#7c9bb5"},
+  {lv:3,    r:"II",    n:"Primer vuelo",  d:"Se congela a cierta altura. Sigue subiendo.", c:"#9fc3d6"},
+  {lv:5,    r:"III",   n:"Estable",       d:"Ya no se cae solo.",                          c:"#35e3ff"},
+  {lv:8,    r:"IV",    n:"Operativo",     d:"El traje responde a la primera.",             c:"#2fd3f2"},
+  {lv:12,   r:"V",     n:"Maletín",       d:"Listo en segundos, donde estés.",             c:"#35ffb0"},
+  {lv:16,   r:"VI",    n:"Reactor nuevo", d:"Cambiaste el núcleo. Ya no te envenena.",     c:"#5ff0c0"},
+  {lv:20,   r:"VII",   n:"Despliegue",    d:"Llega antes de que lo pidas.",                c:"#ffd166"},
+  {lv:25,   r:"VIII",  n:"Serie",         d:"Ya no es un experimento. Es tu método.",      c:"#ffb020"},
+  {lv:30,   r:"IX",    n:"Blindaje",      d:"Los días malos rebotan.",                     c:"#ff9f1c"},
+  {lv:40,   r:"X",     n:"Precisión",     d:"Cero movimiento desperdiciado.",              c:"#ff7f11"},
+  {lv:50,   r:"XI",    n:"Autonomía",     d:"No dependes de tener ganas.",                 c:"#ff5d3b"},
+  {lv:65,   r:"XII",   n:"Silencioso",    d:"Trabajas sin anunciarlo.",                    c:"#ff4d2e"},
+  {lv:80,   r:"XIII",  n:"Enjambre",      d:"Varias piezas avanzando a la vez.",           c:"#f43f5e"},
+  {lv:100,  r:"XIV",   n:"Centurión",     d:"Cien niveles no los da la suerte.",           c:"#e879f9"},
+  {lv:125,  r:"XV",    n:"Bruto",         d:"Levantas cargas que antes te aplastaban.",    c:"#c084fc"},
+  {lv:150,  r:"XVI",   n:"Nocturno",      d:"El sistema trabaja aunque tú estés cansado.", c:"#a78bfa"},
+  {lv:200,  r:"XVII",  n:"Taller propio", d:"Ya no haces videos. Construyes una obra.",    c:"#818cf8"},
+  {lv:250,  r:"XVIII", n:"Legión",        d:"Lo que empezaste te sobrevive un día.",       c:"#60a5fa"},
+  {lv:300,  r:"XIX",   n:"Inmersión",     d:"Entras al foco como quien respira.",          c:"#38bdf8"},
+  {lv:400,  r:"XX",    n:"Alta presión",  d:"Nada de lo que empiezas queda a medias.",     c:"#22d3ee"},
+  {lv:500,  r:"XXI",   n:"Medianoche",    d:"Mitad del camino. Ya eres otro.",             c:"#2dd4bf"},
+  {lv:650,  r:"XXII",  n:"Hiperveloz",    d:"Lo que te costaba una semana sale en un día.",c:"#34d399"},
+  {lv:800,  r:"XXIII", n:"Órbita",        d:"Juegas un juego que casi nadie entiende.",    c:"#a3e635"},
+  {lv:1000, r:"XXIV",  n:"Leyenda",       d:"Nivel 1000. Pídeme el siguiente tramo.",      c:"#ffd700"},
 ];
 
 const SHOP = [
-  {id:"stab",  kind:"power", cost:520,  name:"Estabilizador de racha",  desc:"Si un día no completas el NÚCLEO I, se gasta solo y tu racha aguanta. Máximo 3."},
-  {id:"surge", kind:"power", cost:420,  name:"Sobrecarga del reactor",  desc:"Energía doble en todo lo que completes el resto del día."},
-  {id:"c_ice",   kind:"core", cost:900,  color:"#7dd3fc", name:"Núcleo Glacial",   desc:"Azul hielo. Sangre fría."},
-  {id:"c_plasma",kind:"core", cost:1400, color:"#ff4d2e", name:"Núcleo Plasma",    desc:"Rojo incandescente. Modo guerra."},
-  {id:"c_void",  kind:"core", cost:2000, color:"#a855f7", name:"Núcleo Vacío",     desc:"Púrpura profundo. El taller de noche."},
-  {id:"c_gold",  kind:"core", cost:2800, color:"#ffd700", name:"Núcleo Dorado",    desc:"Oro puro. Cuando ya no quedan excusas."},
+  {id:"stab",  kind:"power", cost:520,  name:"Estabilizador de racha", desc:"Si un día no completas el NÚCLEO I, se gasta solo y tu racha aguanta. Máximo 3."},
+  {id:"surge", kind:"power", cost:420,  name:"Sobrecarga del reactor", desc:"Energía doble en todo lo que completes el resto del día."},
+  {id:"c_ice",   kind:"core", cost:900,  color:"#7dd3fc", name:"Núcleo Glacial", desc:"Azul hielo. Sangre fría."},
+  {id:"c_plasma",kind:"core", cost:1400, color:"#ff4d2e", name:"Núcleo Plasma",  desc:"Rojo incandescente. Modo guerra."},
+  {id:"c_void",  kind:"core", cost:2000, color:"#a855f7", name:"Núcleo Vacío",   desc:"Púrpura profundo. El taller de noche."},
+  {id:"c_gold",  kind:"core", cost:2800, color:"#ffd700", name:"Núcleo Dorado",  desc:"Oro puro. Cuando ya no quedan excusas."},
+];
+
+/* Recompensa variable: la mayoría de las veces no cae nada. Esa es la gracia. */
+const DROPS = [
+  {w:56, id:"none"},
+  {w:16, id:"cred",   ic:"◈", name:"CRÉDITOS EXTRA",   desc:v=>"+"+v+" créditos directos al arsenal."},
+  {w:12, id:"energy", ic:"⌁", name:"PICO DE ENERGÍA",  desc:v=>"+"+v+" de energía al reactor."},
+  {w:8,  id:"boost",  ic:"↑", name:"IMPULSO",          desc:v=>"+"+v+"% de sobrecarga durante el resto del día."},
+  {w:5,  id:"stab",   ic:"⬢", name:"ESTABILIZADOR",    desc:()=>"Un escudo de racha gratis. Guárdalo bien."},
+  {w:3,  id:"jack",   ic:"★", name:"NÚCLEO CRÍTICO",   desc:v=>"+"+v+" créditos y +10% de sobrecarga. Esto casi nunca sale."},
 ];
 
 const MEDALS = [
@@ -743,17 +705,19 @@ const MEDALS = [
   {id:"m8",  t:"25 secuencias",      test:s=>s.sequences>=25},
   {id:"m9",  t:"10 ciclos de foco",  test:s=>s.cyclesTotal>=10},
   {id:"m10", t:"100 ciclos de foco", test:s=>s.cyclesTotal>=100},
-  {id:"m11", t:"MARK V",             test:s=>s.level>=12},
-  {id:"m12", t:"MARK X",             test:s=>s.level>=40},
-  {id:"m13", t:"MARK XIV",           test:s=>s.level>=100},
-  {id:"m14", t:"Sobrecarga x1.5",    test:s=>s.bestMult>=1.5},
-  {id:"m15", t:"Núcleo de color",    test:s=>s.cores.length>=1},
-  {id:"m16", t:"Los 4 núcleos",      test:s=>s.cores.length>=4},
+  {id:"m11", t:"Combo de 8",         test:s=>s.records.combo>=8},
+  {id:"m12", t:"MARK V",             test:s=>s.level>=12},
+  {id:"m13", t:"MARK X",             test:s=>s.level>=40},
+  {id:"m14", t:"MARK XIV",           test:s=>s.level>=100},
+  {id:"m15", t:"Sobrecarga x1.5",    test:s=>s.bestMult>=1.5},
+  {id:"m16", t:"Primera chispa",     test:s=>s.dropsTotal>=1},
+  {id:"m17", t:"25 chispas",         test:s=>s.dropsTotal>=25},
+  {id:"m18", t:"Núcleo crítico",     test:s=>s.jackpots>=1},
+  {id:"m19", t:"Núcleo de color",    test:s=>s.cores.length>=1},
+  {id:"m20", t:"Los 4 núcleos",      test:s=>s.cores.length>=4},
 ];
 
 /* ================= ALMACENAMIENTO ================= */
-/* Safari en privado lanza excepción en vez de devolver null: si no lo
-   blindamos, el script muere y la pantalla queda negra. */
 let storageOK = true, memStore = null;
 function readStore(k){ try{ return localStorage.getItem(k); }catch(e){ storageOK=false; return k===KEY?memStore:null; } }
 function writeStore(v){ memStore=v; try{ localStorage.setItem(KEY,v); }catch(e){ storageOK=false; } }
@@ -773,11 +737,15 @@ function blankState(){
     totalDone:0, totalEnergy:0, sequences:0,
     medals:[], log:[],
     sound:true, haptic:true,
-    stabilizers:0, surgeDay:null,
+    stabilizers:0, surgeDay:null, bonusMult:0,
     cores:[], activeCore:null,
     cycles:0, cyclesTotal:0, bestMult:1,
     focusEnd:null, focusKind:null,
     booted:false, imported:false,
+    list:null,
+    dayEnergy:0, comboN:0, comboAt:0,
+    dropsTotal:0, jackpots:0,
+    records:{dayEnergy:0, charge:0, combo:0, cycles:0, cores:0},
     rewards:[
       {name:"Un capítulo de una serie", cost:260, used:0},
       {name:"Comida favorita", cost:420, used:0},
@@ -789,26 +757,23 @@ function blankState(){
 
 let notices = [];
 
-/* Traslado desde la app anterior: solo la primera vez, y solo lo que importa. */
 function importLegacy(s){
   if(s.imported) return s;
   s.imported = true;
   let old = null;
   try{ old = JSON.parse(readStore(LEGACY_KEY) || "null"); }catch(e){ old = null; }
   if(old && typeof old.level === "number"){
-    s.level       = Math.max(1, old.level|0);
-    s.energy      = Math.max(0, old.xp|0);
-    s.credits     = Math.max(0, old.coins|0);
-    s.streak      = Math.max(0, old.streak|0);
-    s.bestStreak  = Math.max(s.streak, old.bestStreak|0);
+    s.level = Math.max(1, old.level|0);
+    s.energy = Math.max(0, old.xp|0);
+    s.credits = Math.max(0, old.coins|0);
+    s.streak = Math.max(0, old.streak|0);
+    s.bestStreak = Math.max(s.streak, old.bestStreak|0);
     s.perfectDays = Math.max(0, old.perfectDays|0);
     s.totalEnergy = Math.max(0, old.totalXpEarned|0);
-    s.totalDone   = Math.max(0, old.totalQuestsCompleted|0);
-    if(old.attrs){
-      ["creat","cuerpo","mente","disc"].forEach(k=>{
-        if(typeof old.attrs[k] === "number") s.systems[k] = Math.max(0, old.attrs[k]);
-      });
-    }
+    s.totalDone = Math.max(0, old.totalQuestsCompleted|0);
+    if(old.attrs) ["creat","cuerpo","mente","disc"].forEach(k=>{
+      if(typeof old.attrs[k] === "number") s.systems[k] = Math.max(0, old.attrs[k]);
+    });
     notices.push("PROGRESO ANTERIOR TRASLADADO · NIVEL " + s.level);
   }
   return s;
@@ -819,40 +784,40 @@ function load(){
   try{ s = JSON.parse(readStore(KEY) || "null") || blankState(); }
   catch(e){ s = blankState(); }
 
-  /* Migración solo aditiva: nunca borra lo que ya existía */
   const base = blankState();
   for(const k in base){ if(s[k] === undefined) s[k] = base[k]; }
   for(const k in base.systems){ if(s.systems[k] === undefined) s.systems[k] = 0; }
+  for(const k in base.records){ if(!s.records || s.records[k] === undefined){ s.records = s.records || {}; s.records[k] = 0; } }
   if(s.bestStreak < s.streak) s.bestStreak = s.streak;
+  if(!Array.isArray(s.list) || !s.list.length) s.list = JSON.parse(JSON.stringify(DEFAULT_LIST));
 
   s = importLegacy(s);
 
   const day = today();
   if(s.lastDay !== day){
     if(s.lastDay){
-      const gotCore  = !!s.done[STREAK_CORE];
-      const allDone  = PROTOCOLS.every(p=>s.done[p.id]);
-      const count    = PROTOCOLS.filter(p=>s.done[p.id]).length;
-      const gap      = daysBetween(s.lastDay, day);
+      const main = s.list.filter(p=>!p.opt);
+      const core1 = s.list.find(p=>p.core===1) || main[0];
+      const gotCore = core1 ? !!s.done[core1.id] : false;
+      const allDone = main.length > 0 && main.every(p=>s.done[p.id]);
+      const count = main.filter(p=>s.done[p.id]).length;
+      const gap = daysBetween(s.lastDay, day);
 
-      /* La racha del día anterior ya se contó al completar el NÚCLEO I.
-         Aquí solo se rompe, y el estabilizador cubre un día. */
       if(!gotCore || gap > 1){
         if(s.stabilizers > 0 && gap <= 1 && s.streak > 0){
           s.stabilizers -= 1;
           notices.push("ESTABILIZADOR CONSUMIDO · RACHA DE " + s.streak + " INTACTA");
         } else {
+          if(s.streak > 0) notices.push("RACHA PERDIDA · VOLVEMOS A EMPEZAR HOY");
           s.streak = 0;
         }
       }
-      if(allDone){
-        s.perfectDays += 1; s.energy += 40; s.credits += 40; s.totalEnergy += 40;
-        notices.push("DÍA COMPLETO DE AYER · +40 DE ENERGÍA");
-      }
-      s.log.push({day:s.lastDay, core:gotCore, all:allDone, count:count, total:PROTOCOLS.length});
+      if(allDone) s.perfectDays += 1;
+      s.log.push({day:s.lastDay, core:gotCore, all:allDone, count:count, total:main.length, energy:s.dayEnergy||0});
       if(s.log.length > 90) s.log = s.log.slice(-90);
     }
     s.done = {}; s.given = {}; s.chains = {}; s.cycles = 0;
+    s.dayEnergy = 0; s.comboN = 0; s.comboAt = 0; s.bonusMult = 0;
     s.streakDay = null; s.lastDay = day;
     save(s);
   }
@@ -864,6 +829,15 @@ let S = load();
 let section = "dia";
 
 /* ================= CÁLCULO ================= */
+function mainList(){ return S.list.filter(p=>!p.opt); }
+function optList(){ return S.list.filter(p=>p.opt); }
+function coreOf(n){ return S.list.find(p=>p.core===n); }
+function streakProto(){ return coreOf(1) || mainList()[0] || null; }
+function byId(id){ return S.list.find(p=>p.id===id); }
+function doneCount(){ return mainList().filter(p=>S.done[p.id]).length; }
+function dayCharge(){ const m = mainList(); return m.length ? doneCount()/m.length : 0; }
+function remaining(){ return mainList().length - doneCount(); }
+
 function needed(level){ return 120 + (level-1); }
 function markFor(level){
   let m = MARKS[0], i = 0;
@@ -873,28 +847,29 @@ function markFor(level){
 function sysLevel(v){ return 1 + Math.floor(v/320); }
 function sysProgress(v){ return (v % 320) / 320 * 100; }
 
+function comboAlive(){ return S.comboN > 0 && (Date.now() - S.comboAt) < COMBO_WINDOW; }
 function overload(){
   const fromStreak = Math.min(.50, S.streak * .02);
-  const doneCount  = ALL.filter(p=>S.done[p.id]).length;
-  const fromCombo  = Math.min(.30, doneCount * .02);
-  const fromSurge  = (S.surgeDay === today()) ? 1 : 0;
-  return {fromStreak, fromCombo, fromSurge, doneCount, total: 1 + fromStreak + fromCombo + fromSurge};
+  const done = S.list.filter(p=>S.done[p.id]).length;
+  const fromDay = Math.min(.30, done * .02);
+  const fromCombo = comboAlive() ? Math.min(.30, S.comboN * .03) : 0;
+  const fromSurge = (S.surgeDay === today()) ? 1 : 0;
+  const fromDrop = S.bonusMult || 0;
+  return {fromStreak, fromDay, fromCombo, fromSurge, fromDrop,
+          total: 1 + fromStreak + fromDay + fromCombo + fromSurge + fromDrop};
 }
 function mult(){ return overload().total; }
 
 function giveEnergy(n, sys){
-  S.energy += n; S.credits += n; S.totalEnergy += n;
+  S.energy += n; S.credits += n; S.totalEnergy += n; S.dayEnergy += n;
   if(sys && S.systems[sys] !== undefined) S.systems[sys] += n;
 }
 function takeEnergy(n, sys){
-  S.energy -= n; S.credits -= n; S.totalEnergy -= n;
+  S.energy -= n; S.credits -= n; S.totalEnergy -= n; S.dayEnergy -= n;
   if(sys && S.systems[sys] !== undefined) S.systems[sys] -= n;
-  if(S.energy < 0) S.energy = 0;
-  if(S.credits < 0) S.credits = 0;
-  if(S.totalEnergy < 0) S.totalEnergy = 0;
+  ["energy","credits","totalEnergy","dayEnergy"].forEach(k=>{ if(S[k] < 0) S[k] = 0; });
   if(sys && S.systems[sys] < 0) S.systems[sys] = 0;
 }
-/* Devuelve el nivel anterior si hubo ascenso, o null */
 function ascendCheck(){
   const before = S.level;
   while(S.energy >= needed(S.level)){ S.energy -= needed(S.level); S.level += 1; }
@@ -902,17 +877,20 @@ function ascendCheck(){
 }
 
 function parseSlot(t){
-  if(t === "todo el día") return {all:true, from:0, to:1439};
-  const hm = x => { const p = x.trim().split(":"); return (+p[0])*60 + (+(p[1]||0)); };
+  if(!t || t === "todo el día") return {all:true, from:0, to:1439};
+  const hm = x => { const p = String(x).trim().split(":"); const h = parseInt(p[0],10); const m = parseInt(p[1]||"0",10);
+                    return (isNaN(h)?0:h)*60 + (isNaN(m)?0:m); };
   if(t.indexOf("–") > -1){ const a = t.split("–"); return {from:hm(a[0]), to:hm(a[1])}; }
+  if(!/\d/.test(t)) return {all:true, from:0, to:1439};
   const v = hm(t); return {from:v, to:v+40};
 }
 
 /* ================= RACHA ================= */
-/* Sube en el instante en que se completa el NÚCLEO I. Nunca al cambiar de día. */
 function syncStreak(){
+  const p = streakProto();
+  if(!p) return null;
   const day = today();
-  const got = !!S.done[STREAK_CORE];
+  const got = !!S.done[p.id];
   if(got && S.streakDay !== day){
     S.streakDay = day; S.streak += 1;
     if(S.streak > S.bestStreak) S.bestStreak = S.streak;
@@ -925,32 +903,123 @@ function syncStreak(){
   return null;
 }
 
-/* ================= BONOS DE NÚCLEO ================= */
+/* ================= BONOS (se adaptan a TU lista) ================= */
+function chainDefs(){
+  const c1 = coreOf(1), c2 = coreOf(2), c3 = coreOf(3);
+  const defs = [];
+  if(c2) defs.push({id:"wind", need:[c2.id], e:45, sys:"disc", name:"SEGUNDO ALIENTO"});
+  if(c1 && c2) defs.push({id:"dual", need:[c1.id,c2.id], e:70, sys:"creat", name:"DOBLE NÚCLEO"});
+  if(c1 && c2 && c3) defs.push({id:"full", need:[c1.id,c2.id,c3.id], e:140, sys:"creat", name:"SECUENCIA"});
+  const main = mainList();
+  if(main.length >= 3) defs.push({id:"perfect", need:main.map(p=>p.id), e:200, sys:"disc", name:"DÍA COMPLETO"});
+  return defs;
+}
 function syncChains(){
   const fresh = [];
-  CHAINS.forEach(c=>{
-    const ok  = c.need.every(id => !!S.done[id]);
+  const defs = chainDefs();
+  const validIds = {};
+  defs.forEach(c=>{
+    validIds[c.id] = true;
+    const ok = c.need.every(id => !!S.done[id]);
     const had = S.chains[c.id] != null;
     if(ok && !had){
       const amount = Math.round(c.e * mult());
       S.chains[c.id] = amount;
       giveEnergy(amount, c.sys);
       if(c.id === "full") S.sequences += 1;
+      if(c.id === "perfect") S.perfectDays += 1;
       fresh.push({...c, amount});
     } else if(!ok && had){
       takeEnergy(S.chains[c.id], c.sys);
       delete S.chains[c.id];
       if(c.id === "full" && S.sequences > 0) S.sequences -= 1;
+      if(c.id === "perfect" && S.perfectDays > 0) S.perfectDays -= 1;
     }
   });
+  /* si editó la lista y un bono dejó de existir, se limpia */
+  Object.keys(S.chains).forEach(k=>{ if(!validIds[k]) delete S.chains[k]; });
   return fresh;
 }
 
+/* ================= RECOMPENSA VARIABLE ================= */
+function rollDrop(){
+  const total = DROPS.reduce((a,d)=>a+d.w, 0);
+  let r = Math.random()*total;
+  for(const d of DROPS){ r -= d.w; if(r <= 0) return d; }
+  return DROPS[0];
+}
+function applyDrop(){
+  const d = rollDrop();
+  if(d.id === "none") return null;
+  let value = 0;
+  if(d.id === "cred"){ value = 40 + Math.floor(Math.random()*90); S.credits += value; }
+  if(d.id === "energy"){ value = 25 + Math.floor(Math.random()*45); giveEnergy(value, "creat"); }
+  if(d.id === "boost"){ value = 5 + Math.floor(Math.random()*10); S.bonusMult += value/100; }
+  if(d.id === "stab"){ S.stabilizers = Math.min(3, S.stabilizers + 1); }
+  if(d.id === "jack"){ value = 250 + Math.floor(Math.random()*250); S.credits += value; S.bonusMult += .10; S.jackpots += 1; }
+  S.dropsTotal += 1;
+  return {...d, value};
+}
+function showDrop(d){
+  document.getElementById("dropIcon").textContent = d.ic;
+  document.getElementById("dropName").textContent = d.name;
+  document.getElementById("dropDesc").textContent = d.desc(d.value);
+  const col = d.id === "jack" ? "#ffd700" : d.id === "stab" ? "#35ffb0" : "var(--gold)";
+  document.getElementById("dropIcon").style.color = col;
+  document.getElementById("dropName").style.color = col;
+  document.getElementById("dropOver").classList.add("show");
+  lastDrop = d;
+  seq(d.id === "jack" ? [523,659,784,1047] : [659,880]);
+  buzz(d.id === "jack" ? [40,60,40,60,120] : [25,40,25]);
+}
+/* El estallido se guarda para el momento de RECOGER: el premio lo desata
+   una acción tuya, no la espera. */
+let lastDrop = null;
+function closeDrop(){
+  document.getElementById("dropOver").classList.remove("show");
+  if(lastDrop){
+    burst(lastDrop.id === "jack" ? "#ffd700" : "#ffb020", lastDrop.id === "jack" ? 150 : 70);
+    seq(lastDrop.id === "jack" ? [784,988,1319,1568] : [880,1175]);
+    buzz(lastDrop.id === "jack" ? [50,60,50,60,140] : [30,45,30]);
+    lastDrop = null;
+  }
+  render();
+}
+
+/* ================= RÉCORDS PERSONALES ================= */
+function checkRecords(){
+  const hits = [];
+  const charge = Math.round(dayCharge()*100);
+  if(S.dayEnergy > S.records.dayEnergy && S.records.dayEnergy > 0) hits.push("MÁS ENERGÍA EN UN DÍA · " + S.dayEnergy);
+  if(S.dayEnergy > S.records.dayEnergy) S.records.dayEnergy = S.dayEnergy;
+
+  if(charge > S.records.charge && S.records.charge > 0) hits.push("CARGA MÁS ALTA · " + charge + "%");
+  if(charge > S.records.charge) S.records.charge = charge;
+
+  if(S.comboN > S.records.combo && S.records.combo > 0) hits.push("COMBO MÁS LARGO · " + S.comboN);
+  if(S.comboN > S.records.combo) S.records.combo = S.comboN;
+
+  if(S.cycles > S.records.cycles && S.records.cycles > 0) hits.push("MÁS CICLOS EN UN DÍA · " + S.cycles);
+  if(S.cycles > S.records.cycles) S.records.cycles = S.cycles;
+
+  const cores = [1,2,3].filter(n=>{ const c = coreOf(n); return c && S.done[c.id]; }).length;
+  if(cores > S.records.cores && S.records.cores > 0) hits.push("MÁS NÚCLEOS EN UN DÍA · " + cores);
+  if(cores > S.records.cores) S.records.cores = cores;
+
+  hits.forEach((h,i)=>setTimeout(()=>{
+    toast("RÉCORD · " + h, true);
+    burst("#ffb020", 70); seq([784,988,1319]); buzz([35,50,35,50]);
+  }, 900 + i*1500));
+  return hits.length;
+}
+
 /* ================= EFECTOS ================= */
-function toast(msg){
+function toast(msg, isRecord){
   const t = document.getElementById("hud-toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2600);
+  t.textContent = msg;
+  t.classList.toggle("pr", !!isRecord);
+  t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2800);
 }
 function buzz(p){ if(S.haptic && navigator.vibrate) navigator.vibrate(p); }
 function tone(freq, dur, type){
@@ -973,35 +1042,44 @@ function floatEnergy(x, y, txt){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), 950);
 }
+/* números que suben contando, no que saltan */
+function countTo(el, to, suffix){
+  if(!el) return;
+  const from = parseInt(String(el.textContent).replace(/\D/g,""), 10) || 0;
+  if(from === to || calm){ el.textContent = to + (suffix||""); return; }
+  const t0 = Date.now(), dur = 520;
+  clearInterval(el._cv);
+  el._cv = setInterval(()=>{
+    const k = Math.min(1, (Date.now()-t0)/dur);
+    const v = Math.round(from + (to-from) * (1 - Math.pow(1-k,3)));
+    el.textContent = v + (suffix||"");
+    if(k >= 1) clearInterval(el._cv);
+  }, 30);
+}
 
-/* partículas de fondo: polvo del taller */
 const pc = document.getElementById("particles"), pctx = pc.getContext("2d");
 let dust = [];
-function sizeCanvases(){
-  [pc, document.getElementById("burst")].forEach(c=>{ c.width = innerWidth; c.height = innerHeight; });
-}
-sizeCanvases();
-addEventListener("resize", sizeCanvases);
-for(let i=0;i<46;i++){
-  dust.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:Math.random()*1.6+.4,
-             vy:-(Math.random()*.24+.05), vx:(Math.random()-.5)*.12, a:Math.random()*.4+.12});
-}
+function sizeCanvases(){ [pc, document.getElementById("burst")].forEach(c=>{ c.width = innerWidth; c.height = innerHeight; }); }
+sizeCanvases(); addEventListener("resize", sizeCanvases);
+for(let i=0;i<46;i++) dust.push({x:Math.random()*innerWidth, y:Math.random()*innerHeight, r:Math.random()*1.6+.4,
+  vy:-(Math.random()*.24+.05), vx:(Math.random()-.5)*.12, a:Math.random()*.4+.12});
 const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let dustSpeed = 1;
 function dustLoop(){
   pctx.clearRect(0,0,pc.width,pc.height);
   const col = getComputedStyle(document.documentElement).getPropertyValue("--mark").trim() || "#35e3ff";
   dust.forEach(d=>{
-    d.y += d.vy; d.x += d.vx;
+    d.y += d.vy * dustSpeed; d.x += d.vx * dustSpeed;
     if(d.y < -6){ d.y = pc.height + 6; d.x = Math.random()*pc.width; }
     pctx.globalAlpha = d.a; pctx.fillStyle = col;
     pctx.beginPath(); pctx.arc(d.x, d.y, d.r, 0, 6.284); pctx.fill();
   });
   pctx.globalAlpha = 1;
+  if(dustSpeed > 1) dustSpeed = Math.max(1, dustSpeed - .04);
   requestAnimationFrame(dustLoop);
 }
 if(!calm) requestAnimationFrame(dustLoop);
 
-/* estallido de energía */
 const bc = document.getElementById("burst"), bctx = bc.getContext("2d");
 let sparks = [];
 function burst(color, n){
@@ -1011,6 +1089,7 @@ function burst(color, n){
     sparks.push({x:cx, y:cy, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-2, life:52+Math.random()*30,
                  c:color||"#35e3ff", w:1.5+Math.random()*2.5});
   }
+  dustSpeed = 4;
   if(!burst._on){ burst._on = true; requestAnimationFrame(sparkLoop); }
 }
 function sparkLoop(){
@@ -1030,137 +1109,133 @@ function sparkLoop(){
 function reactorSVG(opts){
   const o = opts || {};
   const charge = o.charge != null ? o.charge : dayCharge();
-  const level  = o.level  != null ? o.level  : S.level;
-  const size   = o.size   || 228;
+  const level = o.level != null ? o.level : S.level;
+  const size = o.size || 228;
   const mk = markFor(level);
-  const c  = S.activeCore || mk.c;
+  const c = S.activeCore || mk.c;
   const tier = mk.idx;
-
-  const R = 125, cx = 125, cy = 125;
   const P = [];
 
   P.push('<defs>'+
     '<radialGradient id="glowG"><stop offset="0" stop-color="'+c+'" stop-opacity=".55"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient>'+
     '<linearGradient id="coreG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="'+c+'"/></linearGradient>'+
   '</defs>');
+  P.push('<circle cx="125" cy="125" r="118" fill="url(#glowG)" opacity="'+(.32+charge*.6).toFixed(2)+'"/>');
 
-  /* resplandor */
-  P.push('<circle cx="125" cy="125" r="118" fill="url(#glowG)" opacity="'+(.35+charge*.6).toFixed(2)+'"/>');
-
-  /* anillo exterior con marcas: una por protocolo del día */
-  const n = PROTOCOLS.length;
+  const list = mainList();
+  const n = Math.max(1, list.length);
   let ticks = "";
-  const doneIds = PROTOCOLS.map(p=>!!S.done[p.id]);
   for(let i=0;i<n;i++){
-    const ang = (i/n)*360 - 90;
-    const on = o.charge != null ? (i/n) < charge : doneIds[i];
-    ticks += '<rect x="123.2" y="8" width="3.6" height="'+(on?18:10)+'" rx="1" fill="'+(on?c:"#16304a")+'" '+
-             (on?'opacity=".95"':'opacity=".8"')+' transform="rotate('+(ang+90)+' 125 125)"/>';
+    const ang = (i/n)*360;
+    const on = o.charge != null ? (i/n) < charge : !!S.done[list[i].id];
+    ticks += '<rect x="123.2" y="8" width="3.6" height="'+(on?18:10)+'" rx="1" fill="'+(on?c:"#16304a")+'" opacity=".9" transform="rotate('+ang+' 125 125)"/>';
   }
   P.push('<g class="r-spin-a">'+ticks+'</g>');
 
-  /* aro de progreso */
   const rProg = 96, circ = 2*Math.PI*rProg;
   P.push('<circle cx="125" cy="125" r="'+rProg+'" fill="none" stroke="#0f2135" stroke-width="7"/>');
-  P.push('<circle cx="125" cy="125" r="'+rProg+'" fill="none" stroke="'+c+'" stroke-width="7" stroke-linecap="butt" '+
+  P.push('<circle cx="125" cy="125" r="'+rProg+'" fill="none" stroke="'+c+'" stroke-width="7" '+
          'stroke-dasharray="'+circ.toFixed(1)+'" stroke-dashoffset="'+(circ*(1-charge)).toFixed(1)+'" '+
-         'transform="rotate(-90 125 125)" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.9,.3,1)" opacity=".95"/>');
+         'transform="rotate(-90 125 125)" style="transition:stroke-dashoffset .8s cubic-bezier(.2,.9,.3,1)"/>');
 
-  /* anillo técnico intermedio, gana segmentos con la armadura */
   const segs = Math.min(12, 4 + tier);
   let arcs = "";
   for(let i=0;i<segs;i++){
-    const a0 = (i/segs)*360, sweep = (360/segs) * .55;
-    const rr = 78;
-    const x1 = cx + rr*Math.cos((a0-90)*Math.PI/180), y1 = cy + rr*Math.sin((a0-90)*Math.PI/180);
-    const x2 = cx + rr*Math.cos((a0+sweep-90)*Math.PI/180), y2 = cy + rr*Math.sin((a0+sweep-90)*Math.PI/180);
+    const a0 = (i/segs)*360, sweep = (360/segs)*.55, rr = 78;
+    const x1 = 125 + rr*Math.cos((a0-90)*Math.PI/180), y1 = 125 + rr*Math.sin((a0-90)*Math.PI/180);
+    const x2 = 125 + rr*Math.cos((a0+sweep-90)*Math.PI/180), y2 = 125 + rr*Math.sin((a0+sweep-90)*Math.PI/180);
     arcs += '<path d="M'+x1.toFixed(1)+' '+y1.toFixed(1)+' A'+rr+' '+rr+' 0 0 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="'+c+'" stroke-width="2.4" opacity=".55"/>';
   }
   P.push('<g class="r-spin-b">'+arcs+'</g>');
-
-  /* triángulo interior (el reactor de pecho) */
   P.push('<g class="r-spin-c" opacity=".5"><polygon points="125,72 171,152 79,152" fill="none" stroke="'+c+'" stroke-width="1.6"/></g>');
   P.push('<circle cx="125" cy="125" r="56" fill="none" stroke="'+c+'" stroke-width="1" opacity=".35" stroke-dasharray="3 6"/>');
-
-  /* núcleo — el brillo vive en el anillo, no bajo el texto: el disco central
-     se mantiene oscuro para que la lectura se lea limpia encima */
   P.push('<g class="r-core">'+
     '<circle cx="125" cy="125" r="46" fill="'+c+'" opacity="'+(.10+charge*.16).toFixed(2)+'"/>'+
     '<circle cx="125" cy="125" r="46" fill="none" stroke="url(#coreG)" stroke-width="4" opacity="'+(.5+charge*.5).toFixed(2)+'"/>'+
     '<circle cx="125" cy="125" r="41" fill="#04070e" opacity=".82"/>'+
     '<circle cx="125" cy="125" r="7" fill="#ffffff" opacity="'+(.35+charge*.45).toFixed(2)+'"/>'+
   '</g>');
-
   return '<svg viewBox="0 0 250 250" width="'+size+'" height="'+size+'" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+P.join("")+'</svg>';
-}
-function dayCharge(){
-  return PROTOCOLS.filter(p=>S.done[p.id]).length / PROTOCOLS.length;
 }
 function pokeReactor(){
   const r = document.getElementById("reactor");
   r.classList.remove("kick"); void r.offsetWidth; r.classList.add("kick");
-  tone(320,.13,"sine"); buzz(12);
-  toast(jarvisLine(true));
+  tone(320,.13,"sine"); buzz(12); dustSpeed = 3;
+  speak(true);
 }
 
 /* ================= J.A.R.V.I.S. ================= */
-function activeProtocol(){
+function activeProto(){
   const m = minsNow();
   let best = null;
-  PROTOCOLS.forEach(p=>{
-    const w = parseSlot(p.t);
-    if(w.all) return;
-    if(m >= w.from && m <= w.to && !S.done[p.id]) if(!best || w.from > parseSlot(best.t).from) best = p;
-  });
-  return best;
-}
-function nextProtocol(){
-  const m = minsNow();
-  let best = null, bestFrom = 1e9;
-  PROTOCOLS.forEach(p=>{
+  mainList().forEach(p=>{
     const w = parseSlot(p.t);
     if(w.all || S.done[p.id]) return;
-    if(w.from > m && w.from < bestFrom){ best = p; bestFrom = w.from; }
+    if(m >= w.from && m <= w.to && (!best || w.from > parseSlot(best.t).from)) best = p;
   });
   return best;
 }
-function overdue(){
+function nextProto(){
   const m = minsNow();
-  return PROTOCOLS.filter(p=>{
+  let best = null, bf = 1e9;
+  mainList().forEach(p=>{
     const w = parseSlot(p.t);
-    return !w.all && !S.done[p.id] && w.to < m;
+    if(w.all || S.done[p.id]) return;
+    if(w.from > m && w.from < bf){ best = p; bf = w.from; }
   });
+  return best;
 }
-function jarvisLine(shuffle){
+function overdueList(){
   const m = minsNow();
-  const doneCore = !!S.done[STREAK_CORE];
+  return mainList().filter(p=>{ const w = parseSlot(p.t); return !w.all && !S.done[p.id] && w.to < m; });
+}
+function shortName(p){ return p ? p.n.split("·")[0].trim() : ""; }
+
+const CHATTER = [
+  ()=>"Reactor al "+Math.round(dayCharge()*100)+"%. Sobrecarga x"+mult().toFixed(2)+".",
+  ()=>"Nivel "+S.level+". "+(markFor(S.level).next ? "Siguiente armadura en el nivel "+markFor(S.level).next.lv+"." : "Última armadura alcanzada."),
+  ()=>"Créditos disponibles: "+S.credits+". El arsenal está abierto.",
+  ()=>S.stabilizers ? ("Tienes "+S.stabilizers+" estabilizador"+(S.stabilizers>1?"es":"")+" en reserva.") : "Sin estabilizadores. Un mal día costaría la racha.",
+  ()=>"Tu récord de energía en un día es "+S.records.dayEnergy+". Hoy vas por "+S.dayEnergy+".",
+  ()=>"Cada protocolo puede soltar una chispa. Nunca se sabe cuál.",
+  ()=>"El combo aguanta 90 minutos. Si te mueves ahora, no se rompe.",
+];
+function jarvisLine(shuffle){
+  const p = streakProto();
+  const gotCore = p ? !!S.done[p.id] : false;
+  const m = minsNow();
+  const left = remaining();
   const charge = dayCharge();
-  if(charge >= 1) return "Día completo. Los 19 protocolos, señor. Descanse.";
-  if(!doneCore && m > 13*60) return "El NÚCLEO I sigue sin ejecutarse. La racha de " + S.streak + " está en riesgo.";
-  if(!doneCore) return "Prioridad: NÚCLEO I. Es el que sostiene la racha.";
-  if(doneCore && !S.done.core2 && m >= 13*60 && m <= 17*60) return "NÚCLEO II disponible. Es el bloque mejor pagado del día.";
-  if(S.done.core1 && S.done.core2 && !S.done.core3) return "Dos núcleos completos. El tercero cierra la Secuencia: +140.";
-  const od = overdue();
-  if(od.length >= 3) return od.length + " protocolos atrasados. Retómelos por el más cercano.";
-  if(shuffle){
-    const lines = [
-      "Reactor al " + Math.round(charge*100) + "%. Sobrecarga x" + mult().toFixed(2) + ".",
-      "Sistemas nominales. Continúe.",
-      "Nivel " + S.level + ". " + (markFor(S.level).next ? ("Siguiente armadura en el nivel " + markFor(S.level).next.lv + ".") : "Última armadura alcanzada."),
-      "Créditos disponibles: " + S.credits + "."
-    ];
-    return lines[Math.floor(Math.random()*lines.length)];
+
+  if(charge >= 1) return "Lista completa. Los "+mainList().length+" protocolos. Descanse, señor.";
+  if(left === 1){
+    const last = mainList().find(x=>!S.done[x.id]);
+    return "Queda UNO: "+shortName(last)+". No lo deje ahí.";
   }
-  const act = activeProtocol();
-  if(act) return "En curso ahora: " + act.n.split("·")[0].trim() + ".";
-  const nx = nextProtocol();
-  if(nx) return "Siguiente a las " + nx.t.split("–")[0].trim() + ": " + nx.n.split("·")[0].trim() + ".";
-  return "Reactor al " + Math.round(charge*100) + "%. Sistemas nominales.";
+  if(left === 2) return "Dos protocolos y el día queda cerrado. El bono de DÍA COMPLETO está a tiro.";
+  if(!gotCore && m > 13*60 && S.streak > 0) return "El NÚCLEO I sigue sin ejecutarse. Su racha de "+S.streak+" está en riesgo real.";
+  if(!gotCore) return "Prioridad: "+shortName(p)+". Es lo que sostiene la racha.";
+  const c2 = coreOf(2);
+  if(gotCore && c2 && !S.done[c2.id] && m >= 12*60) return "NÚCLEO II disponible. Nada del día paga tanto como ese bloque.";
+  const c3 = coreOf(3);
+  if(c2 && c3 && S.done[c2.id] && !S.done[c3.id]) return "Dos núcleos dentro. El tercero cierra la SECUENCIA: +140.";
+  if(comboAlive() && S.comboN >= 3) return "Combo de "+S.comboN+" activo. Encadene otro antes de que se enfríe.";
+  const od = overdueList();
+  if(od.length >= 3) return od.length+" protocolos atrasados. Empiece por "+shortName(od[od.length-1])+".";
+  if(shuffle) return CHATTER[Math.floor(Math.random()*CHATTER.length)]();
+  const act = activeProto();
+  if(act) return "En curso ahora: "+shortName(act)+".";
+  const nx = nextProto();
+  if(nx) return "Siguiente a las "+nx.t.split("–")[0].trim()+": "+shortName(nx)+".";
+  return "Reactor al "+Math.round(charge*100)+"%. Sistemas nominales.";
+}
+function speak(shuffle){
+  const box = document.getElementById("jarvisBox");
+  document.getElementById("jarvis").textContent = jarvisLine(shuffle);
+  if(shuffle){ box.classList.remove("flash"); void box.offsetWidth; box.classList.add("flash"); tone(380,.07,"sine"); }
 }
 
-/* ================= ACCIONES ================= */
-function byId(id){ return ALL.find(p=>p.id===id); }
-
+/* ================= EJECUTAR PROTOCOLO ================= */
 function execute(id, ev){
   const p = byId(id);
   if(!p) return;
@@ -1168,6 +1243,10 @@ function execute(id, ev){
   S.done[id] = !was;
 
   if(!was){
+    /* combo por ritmo */
+    if(comboAlive()) S.comboN += 1; else S.comboN = 1;
+    S.comboAt = Date.now();
+
     const m = mult();
     const gain = Math.round(p.e * m);
     S.given[id] = gain;
@@ -1175,35 +1254,44 @@ function execute(id, ev){
     S.totalDone += 1;
     if(m > S.bestMult) S.bestMult = m;
 
-    if(ev && ev.clientX != null) floatEnergy(ev.clientX, ev.clientY, "+" + gain);
+    if(ev && ev.clientX != null) floatEnergy(ev.clientX, ev.clientY, "+"+gain);
     buzz(16); tone(520,.08,"triangle");
 
     const chains = syncChains();
     const streak = syncStreak();
+    const drop = applyDrop();
     const before = ascendCheck();
     save(); render();
 
     const el = document.querySelector('[data-mod="'+id+'"]');
     if(el){ el.classList.remove("fire"); void el.offsetWidth; el.classList.add("fire"); }
 
+    /* una sola celebración grande, por orden de importancia */
     if(before !== null) showAscend(S.level, before);
+    else if(chains.length){
+      const c = chains[chains.length-1];
+      const big = c.id === "perfect" || c.id === "full";
+      burst(big ? "#ffd700" : "#ffb020", big ? 140 : 70);
+      seq(big ? [523,659,784,1047,1319] : [523,659,784]);
+      buzz([30,50,30,50,90]);
+      toast(c.name + " · +" + c.amount);
+    }
     else if(streak === "up"){
       burst("#ff4d2e", 70); seq([440,554,659,880]); buzz([30,50,30,50,70]);
       toast("RACHA " + S.streak + " · DÍA ASEGURADO");
     }
-    else if(chains.length){
-      const c = chains[chains.length-1];
-      burst(c.id === "full" ? "#ffd700" : "#ffb020", c.id === "full" ? 120 : 70);
-      seq(c.id === "full" ? [523,659,784,1047,1319] : [523,659,784]);
-      buzz([30,50,30,50,90]);
-      toast(c.name + " · +" + c.amount);
-    }
-    else if(p.core){ burst(null, 40); toast("NÚCLEO " + "I".repeat(p.core) + " COMPLETO · +" + gain); }
+    else if(S.comboN >= 3){ toast("COMBO x" + S.comboN + " · +" + gain); tone(700,.1,"triangle"); }
+    else if(p.core){ burst(null, 40); toast("NÚCLEO COMPLETO · +" + gain); }
+
+    checkRecords();
+    if(drop) setTimeout(()=>showDrop(drop), 850);
+    save();
   } else {
     const back = S.given[id] != null ? S.given[id] : p.e;
     takeEnergy(back, p.sys);
     delete S.given[id];
     S.totalDone = Math.max(0, S.totalDone - 1);
+    S.comboN = Math.max(0, S.comboN - 1);
     syncChains(); syncStreak();
     save(); render();
   }
@@ -1219,38 +1307,63 @@ function checkMedals(){
   });
   if(fresh.length){
     save();
-    fresh.forEach((m,i)=>setTimeout(()=>{ toast("CONDECORACIÓN · " + m.t.toUpperCase()); tone(760,.14,"triangle"); }, 1200 + i*1100));
+    fresh.forEach((m,i)=>setTimeout(()=>{ toast("CONDECORACIÓN · " + m.t.toUpperCase()); tone(760,.14,"triangle"); }, 1600 + i*1200));
   }
+}
+
+/* ================= PULSAR Y MANTENER (núcleos) ================= */
+let holdTimer = null, holdId = null;
+function holdStart(id, ev){
+  const p = byId(id);
+  if(!p || !p.core || S.done[id]) return;
+  const el = document.querySelector('[data-mod="'+id+'"]');
+  if(!el) return;
+  holdId = id;
+  el.classList.add("holding");
+  tone(240,.5,"sine"); buzz(10);
+  holdTimer = setTimeout(()=>{
+    el.classList.remove("holding");
+    holdTimer = null; holdId = null;
+    execute(id, ev);
+  }, 640);
+}
+function holdEnd(id){
+  if(holdTimer){ clearTimeout(holdTimer); holdTimer = null; }
+  if(holdId){
+    const el = document.querySelector('[data-mod="'+holdId+'"]');
+    if(el) el.classList.remove("holding");
+    holdId = null;
+  }
+}
+/* Un toque suelto en un núcleo no lo marca: avisa que hay que mantener */
+function coreTap(id, ev){
+  if(S.done[id]){ execute(id, ev); return; }
+  toast("MANTÉN PULSADO PARA CONFIRMAR EL NÚCLEO");
+  buzz(8);
 }
 
 /* ================= ASCENSO ================= */
 function showAscend(level, before){
-  const mk = markFor(level), mkBefore = markFor(before);
+  const mk = markFor(level), mkB = markFor(before);
   document.getElementById("ascendReactor").innerHTML = reactorSVG({level:level, charge:1, size:170});
   document.getElementById("ascendMark").textContent = "MARK " + mk.r;
-  document.getElementById("ascendSub").textContent  = mk.n;
+  document.getElementById("ascendSub").textContent = mk.n;
   document.getElementById("ascendDesc").textContent = mk.d;
-
   const rows = [];
-  if(mk.idx > mkBefore.idx) rows.push(["Armadura nueva", "MARK " + mk.r]);
-  if(level - before > 1)    rows.push(["Niveles de golpe", (level - before)]);
+  if(mk.idx > mkB.idx) rows.push(["Armadura nueva", "MARK " + mk.r]);
+  if(level - before > 1) rows.push(["Niveles de golpe", (level - before)]);
   rows.push(["Nivel", level]);
   rows.push(["Energía al siguiente", needed(level)]);
   if(mk.next) rows.push(["Siguiente armadura", "nivel " + mk.next.lv]);
-  document.getElementById("ascendList").innerHTML =
-    rows.map(r=>'<div class="a-li"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join("");
-
+  document.getElementById("ascendList").innerHTML = rows.map(r=>'<div class="a-li"><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join("");
   document.getElementById("ascendOver").classList.add("show");
   burst(mk.c, 130); seq([523,659,784,1047]); buzz([25,45,25,45,110]);
 }
-function closeAscend(){
-  document.getElementById("ascendOver").classList.remove("show");
-  pokeReactor();
-}
+function closeAscend(){ document.getElementById("ascendOver").classList.remove("show"); pokeReactor(); }
 
-/* ================= PROTOCOLO DE ENFOQUE ================= */
-const FOCUS_LEN = {foco:50, pausa:10};
-const CYCLE_ENERGY = 18;
+/* ================= ENFOQUE ================= */
+const FOCUS_LEN = {foco:50, pausa:10, arranque:5};
+const CYCLE_ENERGY = 18, START_ENERGY = 6;
 
 function openFocus(){ document.getElementById("focusOver").classList.add("show"); drawFocus(); }
 function closeFocus(){ document.getElementById("focusOver").classList.remove("show"); }
@@ -1259,35 +1372,29 @@ function beginFocus(kind){
   S.focusEnd = Date.now() + FOCUS_LEN[kind]*60000;
   save(); openFocus(); drawFocus();
   tone(640,.12,"triangle"); buzz(18);
+  if(kind === "arranque") toast("CINCO MINUTOS. NADA MÁS.");
 }
-function focusPrimary(){
-  if(S.focusEnd) return;
-  beginFocus(S.focusKind === "foco" ? "pausa" : "foco");
-}
-function abortFocus(){
-  S.focusEnd = null; S.focusKind = null;
-  save(); drawFocus(); closeFocus(); toast("PROTOCOLO ABORTADO");
-}
+function focusPrimary(){ if(S.focusEnd) return; beginFocus(S.focusKind === "foco" ? "pausa" : "foco"); }
+function abortFocus(){ S.focusEnd = null; S.focusKind = null; save(); drawFocus(); closeFocus(); toast("PROTOCOLO ABORTADO"); }
 function focusLeft(){ return S.focusEnd ? Math.max(0, S.focusEnd - Date.now()) : 0; }
-function clockFmt(ms){
-  const t = Math.ceil(ms/1000);
-  return String(Math.floor(t/60)).padStart(2,"0") + ":" + String(t%60).padStart(2,"0");
-}
-/* Guarda el instante final, no los segundos: sobrevive a cerrar la app */
+function clockFmt(ms){ const t = Math.ceil(ms/1000); return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0"); }
+
 function tickFocus(){
   if(S.focusEnd && Date.now() >= S.focusEnd){
     const kind = S.focusKind;
-    S.focusEnd = null; S.focusKind = kind;
-    if(kind === "foco"){
-      const amount = Math.round(CYCLE_ENERGY * mult());
-      S.cycles += 1; S.cyclesTotal += 1;
+    S.focusEnd = null; S.focusKind = kind === "arranque" ? null : kind;
+    if(kind === "foco" || kind === "arranque"){
+      const base = kind === "foco" ? CYCLE_ENERGY : START_ENERGY;
+      const amount = Math.round(base * mult());
+      if(kind === "foco"){ S.cycles += 1; S.cyclesTotal += 1; }
       giveEnergy(amount, "creat");
       const before = ascendCheck();
       save(); render();
-      toast("CICLO COMPLETO · +" + amount);
+      toast((kind === "foco" ? "CICLO COMPLETO · +" : "ARRANQUE HECHO · +") + amount);
       burst(null, 60); seq([784,988,1319]); buzz([45,55,45]);
+      if(kind === "arranque") setTimeout(()=>toast("YA ESTÁS DENTRO. ¿SIGUES CON 50?"), 2900);
       if(before !== null) showAscend(S.level, before);
-      checkMedals();
+      checkRecords(); checkMedals();
     } else {
       save(); render();
       toast("PAUSA TERMINADA · VUELVE AL NÚCLEO");
@@ -1298,28 +1405,30 @@ function tickFocus(){
 }
 function drawFocus(){
   const running = !!S.focusEnd;
-  const tEl = document.getElementById("fTime");
-  const kEl = document.getElementById("fKick");
-  const sEl = document.getElementById("fSub");
-  const bEl = document.getElementById("fBtn");
+  const tEl = document.getElementById("fTime"), kEl = document.getElementById("fKick");
+  const sEl = document.getElementById("fSub"), bEl = document.getElementById("fBtn");
+  const qEl = document.getElementById("fQuick");
   if(running){
     const kind = S.focusKind;
     tEl.textContent = clockFmt(focusLeft());
-    kEl.textContent = kind === "pausa" ? "PAUSA EN CURSO" : "ENFOQUE EN CURSO";
+    kEl.textContent = kind === "pausa" ? "PAUSA EN CURSO" : kind === "arranque" ? "ARRANQUE DE 5 MIN" : "ENFOQUE EN CURSO";
     sEl.textContent = kind === "pausa"
       ? "Diez minutos. Levántate, camina, no abras nada de trabajo."
-      : "Cincuenta minutos sin teléfono. Al terminar: +" + CYCLE_ENERGY + " de energía por tu sobrecarga.";
-    bEl.textContent = "EN MARCHA…";
-    bEl.disabled = true;
+      : kind === "arranque"
+      ? "Solo cinco minutos. Si al terminar sigues, ya ganaste el día."
+      : "Cincuenta minutos sin teléfono. Al terminar: +" + CYCLE_ENERGY + " por tu sobrecarga.";
+    bEl.textContent = "EN MARCHA…"; bEl.disabled = true;
+    qEl.disabled = true; qEl.style.opacity = ".4";
   } else {
     const next = S.focusKind === "foco" ? "pausa" : "foco";
     tEl.textContent = String(FOCUS_LEN[next]).padStart(2,"0") + ":00";
     kEl.textContent = next === "pausa" ? "PAUSA LISTA" : "PROTOCOLO DE ENFOQUE";
     sEl.textContent = next === "pausa"
       ? "Ciclo terminado. La pausa es parte del método, no un premio."
-      : "Ciclos de 50 y 10. Tres ciclos cubren un núcleo entero.";
+      : "Lo difícil es empezar. Si no te ves con 50, arranca con 5.";
     bEl.textContent = next === "pausa" ? "INICIAR PAUSA 10 MIN" : "INICIAR 50 MIN";
     bEl.disabled = false;
+    qEl.disabled = false; qEl.style.opacity = "1";
   }
 }
 
@@ -1328,15 +1437,13 @@ function buy(id){
   const it = SHOP.find(x=>x.id===id);
   if(!it) return;
   if(it.kind === "core" && S.cores.indexOf(it.id) > -1){ equipCore(it.id); return; }
-  if(it.id === "stab"  && S.stabilizers >= 3){ toast("MÁXIMO 3 ESTABILIZADORES"); return; }
+  if(it.id === "stab" && S.stabilizers >= 3){ toast("MÁXIMO 3 ESTABILIZADORES"); return; }
   if(it.id === "surge" && S.surgeDay === today()){ toast("SOBRECARGA YA ACTIVA HOY"); return; }
   if(S.credits < it.cost){ toast("FALTAN " + (it.cost - S.credits) + " CRÉDITOS"); return; }
-
   S.credits -= it.cost;
-  if(it.id === "stab")  S.stabilizers += 1;
+  if(it.id === "stab") S.stabilizers += 1;
   if(it.id === "surge") S.surgeDay = today();
   if(it.kind === "core"){ S.cores.push(it.id); S.activeCore = it.color; }
-
   save(); render();
   toast(it.name.toUpperCase() + (it.id === "surge" ? " · ACTIVA" : " · ADQUIRIDO"));
   burst(it.color || "#ffb020", 55); seq([523,659,784]); buzz([25,35,25]);
@@ -1353,7 +1460,7 @@ function addReward(){
   const v = i.value.trim();
   if(!v) return;
   S.rewards.push({name:v, cost:400, used:0});
-  i.value = ""; save(); render();
+  i.value = ""; save(); render(); toast("RECOMPENSA AÑADIDA");
 }
 function claim(i){
   const r = S.rewards[i];
@@ -1361,6 +1468,114 @@ function claim(i){
   S.credits -= r.cost; r.used += 1;
   save(); render(); toast("CANJEADO · " + r.name.toUpperCase());
   burst("#ffb020", 50); seq([523,659,784]); buzz([25,35,25]);
+}
+
+/* ================= EDITOR DE LA LISTA ================= */
+let editing = null;   // id en edición, o "nuevo"
+function openEditor(){ editing = null; document.getElementById("editorOver").classList.add("show"); drawEditor(); }
+function closeEditor(){ editing = null; document.getElementById("editorOver").classList.remove("show"); render(); }
+function newProtocol(){ editing = "nuevo"; drawEditor(); }
+function editProtocol(id){ editing = id; drawEditor(); }
+function moveProtocol(id, dir){
+  const i = S.list.findIndex(p=>p.id===id);
+  const j = i + dir;
+  if(i < 0 || j < 0 || j >= S.list.length) return;
+  const tmp = S.list[i]; S.list[i] = S.list[j]; S.list[j] = tmp;
+  save(); drawEditor(); buzz(8);
+}
+function deleteProtocol(id){
+  const p = byId(id);
+  if(!p) return;
+  if(!confirm("¿Borrar «" + p.n + "» de tu lista?")) return;
+  S.list = S.list.filter(x=>x.id!==id);
+  delete S.done[id]; delete S.given[id];
+  syncChains(); save(); drawEditor(); toast("PROTOCOLO ELIMINADO");
+}
+function saveProtocol(){
+  const g = id => document.getElementById(id);
+  const name = g("edName").value.trim();
+  if(!name){ toast("PONLE UN NOMBRE"); return; }
+  const data = {
+    n: name,
+    t: g("edTime").value.trim() || "todo el día",
+    d: g("edNote").value.trim(),
+    e: Math.max(1, Math.min(500, parseInt(g("edEnergy").value,10) || 10)),
+    sys: g("edSys").value,
+    ph: g("edPhase").value.trim().toUpperCase() || "EXTRA",
+    opt: g("edOpt").value === "1",
+    core: parseInt(g("edCore").value,10) || 0
+  };
+  if(data.core){
+    /* solo un protocolo por número de núcleo */
+    S.list.forEach(p=>{ if(p.core === data.core && p.id !== editing) delete p.core; });
+  } else delete data.core;
+
+  if(editing === "nuevo"){
+    data.id = "u_" + Date.now().toString(36);
+    S.list.push(data);
+    toast("PROTOCOLO AÑADIDO");
+  } else {
+    const p = byId(editing);
+    if(p) Object.assign(p, data, {id:p.id});
+    if(p && !data.core) delete p.core;
+    toast("PROTOCOLO ACTUALIZADO");
+  }
+  editing = null;
+  syncChains(); save(); drawEditor(); buzz(15); tone(660,.1,"triangle");
+}
+function restoreList(){
+  if(!confirm("¿Restaurar la rutina original? Se pierden los protocolos que hayas creado tú.")) return;
+  S.list = JSON.parse(JSON.stringify(DEFAULT_LIST));
+  syncChains(); save(); drawEditor(); toast("RUTINA ORIGINAL RESTAURADA");
+}
+function drawEditor(){
+  const form = document.getElementById("edForm");
+  if(editing){
+    const p = editing === "nuevo"
+      ? {n:"", t:"", d:"", e:10, sys:"creat", ph:"EXTRA", opt:false, core:0}
+      : (byId(editing) || {n:"", t:"", d:"", e:10, sys:"creat", ph:"EXTRA", opt:false, core:0});
+    const esc = v => String(v||"").replace(/"/g,"&quot;");
+    form.innerHTML =
+      '<div class="ed-form">'+
+        '<label>NOMBRE</label><input id="edName" value="'+esc(p.n)+'" placeholder="Qué tienes que hacer">'+
+        '<div class="two">'+
+          '<div><label>HORARIO</label><input id="edTime" value="'+esc(p.t)+'" placeholder="9:45 – 12:45"></div>'+
+          '<div><label>ENERGÍA</label><input id="edEnergy" type="number" min="1" max="500" value="'+(p.e||10)+'"></div>'+
+        '</div>'+
+        '<label>NOTA</label><input id="edNote" value="'+esc(p.d)+'" placeholder="Un recordatorio corto">'+
+        '<div class="two">'+
+          '<div><label>SISTEMA</label><select id="edSys">'+
+            Object.keys(SYSTEMS).map(k=>'<option value="'+k+'"'+(p.sys===k?" selected":"")+'>'+SYSTEMS[k].label+'</option>').join("")+
+          '</select></div>'+
+          '<div><label>BLOQUE</label><input id="edPhase" value="'+esc(p.ph||"EXTRA")+'" placeholder="TALLER"></div>'+
+        '</div>'+
+        '<div class="two">'+
+          '<div><label>TIPO</label><select id="edOpt">'+
+            '<option value="0"'+(!p.opt?" selected":"")+'>Obligatorio</option>'+
+            '<option value="1"'+(p.opt?" selected":"")+'>Opcional</option>'+
+          '</select></div>'+
+          '<div><label>NÚCLEO</label><select id="edCore">'+
+            [0,1,2,3].map(n=>'<option value="'+n+'"'+((p.core||0)===n?" selected":"")+'>'+(n?("NÚCLEO "+n):"No")+'</option>').join("")+
+          '</select></div>'+
+        '</div>'+
+        '<button class="sbtn go" onclick="saveProtocol()">GUARDAR</button>'+
+        '<button class="sbtn" onclick="editing=null;drawEditor()">CANCELAR</button>'+
+      '</div>';
+  } else form.innerHTML = "";
+
+  document.getElementById("edRows").innerHTML = S.list.map((p,i)=>
+    '<div class="ed-row">'+
+      '<div class="e-b">'+
+        '<div class="e-n">'+p.n+(p.core?(' <span class="badge seq">NÚCLEO '+p.core+'</span>'):"")+(p.opt?' <span class="badge">OPC</span>':"")+'</div>'+
+        '<div class="e-m mono">'+p.t+' · +'+p.e+' · '+(SYSTEMS[p.sys]?SYSTEMS[p.sys].name:"—")+'</div>'+
+      '</div>'+
+      '<div class="e-act">'+
+        '<button onclick="moveProtocol(\''+p.id+'\',-1)" aria-label="Subir">▲</button>'+
+        '<button onclick="moveProtocol(\''+p.id+'\',1)" aria-label="Bajar">▼</button>'+
+        '<button onclick="editProtocol(\''+p.id+'\')" aria-label="Editar">✎</button>'+
+        '<button onclick="deleteProtocol(\''+p.id+'\')" aria-label="Borrar">✕</button>'+
+      '</div>'+
+    '</div>').join("");
 }
 
 /* ================= SISTEMA ================= */
@@ -1403,161 +1618,201 @@ function importData(evt){
       const base = blankState();
       for(const k in base){ if(p[k] === undefined) p[k] = base[k]; }
       for(const k in base.systems){ if(p.systems[k] === undefined) p.systems[k] = 0; }
+      for(const k in base.records){ if(!p.records || p.records[k] === undefined){ p.records = p.records || {}; p.records[k] = 0; } }
+      if(!Array.isArray(p.list) || !p.list.length) p.list = JSON.parse(JSON.stringify(DEFAULT_LIST));
       if(p.bestStreak < p.streak) p.bestStreak = p.streak;
       p.imported = true;
-      S = p; save(); render(); closePanel();
-      toast("PROGRESO RESTAURADO");
+      S = p; save(); render(); closePanel(); toast("PROGRESO RESTAURADO");
     }catch(err){ toast("ARCHIVO INVÁLIDO"); }
   };
   r.readAsText(f); evt.target.value = "";
 }
 
 /* ================= DIBUJADO ================= */
-function modHTML(p, optional){
+function modHTML(p){
   const on = !!S.done[p.id];
-  const isStreak = p.id === STREAK_CORE;
-  const isPay = p.id === "core2";
+  const sp = streakProto();
+  const isStreak = sp && p.id === sp.id;
+  const c2 = coreOf(2);
+  const isPay = c2 && p.id === c2.id;
+  const c3 = coreOf(3);
+  const isLast = c3 && p.id === c3.id;
   const shown = S.given[p.id] != null ? S.given[p.id] : Math.round(p.e * mult());
-  const cls = ["mod", p.core?"core-mod":"", isPay?"pay":"", isStreak?"chain":"", optional?"opt":"", on?"on":""].filter(Boolean).join(" ");
-  const badges =
-    (isStreak ? '<span class="badge streak">RACHA</span>' : "") +
-    (isPay ? '<span class="badge pay">+115 BONO</span>' : "") +
-    (p.id === "core3" ? '<span class="badge seq">CIERRA SECUENCIA</span>' : "");
+  const cls = ["mod", p.core?"core-mod":"", isPay?"pay":"", isStreak?"chain":"", p.opt?"opt":"", on?"on":""].filter(Boolean).join(" ");
+  const badges = (isStreak?'<span class="badge streak">RACHA</span>':"")+
+                 (isPay?'<span class="badge pay">+115 BONO</span>':"")+
+                 (isLast?'<span class="badge seq">CIERRA SECUENCIA</span>':"");
+  const ledAttrs = p.core && !on
+    ? 'onpointerdown="holdStart(\''+p.id+'\', event)" onpointerup="holdEnd()" onpointerleave="holdEnd()" onpointercancel="holdEnd()" onclick="coreTap(\''+p.id+'\', event)"'
+    : 'onclick="execute(\''+p.id+'\', event)"';
+  const bodyAttrs = p.core && !on
+    ? 'onclick="coreTap(\''+p.id+'\', event)"'
+    : 'onclick="execute(\''+p.id+'\', event)"';
   return '<div class="'+cls+'" data-mod="'+p.id+'">'+
-    '<span class="sweep"></span>'+
-    '<div class="rail"></div>'+
-    '<div class="body" onclick="execute(\''+p.id+'\', event)" role="button" tabindex="0">'+
+    '<span class="sweep"></span><div class="rail"></div>'+
+    '<div class="body" '+bodyAttrs+' role="button" tabindex="0">'+
       '<div class="m-top"><span class="m-time mono">'+p.t+'</span><span class="m-e mono">+'+shown+'</span></div>'+
       '<div class="m-name">'+p.n+badges+'</div>'+
-      '<div class="m-note">'+p.d+'</div>'+
-      '<div class="m-sys mono">'+SYSTEMS[p.sys].name+
-        (p.core ? ' · <span style="color:var(--cyan)" onclick="event.stopPropagation();openFocus()">ENFOQUE 50/10 ▸</span>' : '')+
+      (p.d ? '<div class="m-note">'+p.d+'</div>' : '')+
+      '<div class="m-sys mono">'+(SYSTEMS[p.sys]?SYSTEMS[p.sys].name:"—")+
+        (p.core ? ' · <span class="go" onclick="event.stopPropagation();openFocus()">ENFOQUE ▸</span>' : '')+
+        (p.core && !on ? ' · MANTÉN PULSADO' : '')+
       '</div>'+
     '</div>'+
-    '<div class="led" onclick="execute(\''+p.id+'\', event)" role="button" tabindex="0" aria-label="Completar"><i></i></div>'+
+    '<div class="led" '+ledAttrs+' role="button" tabindex="0" aria-label="Completar">'+
+      (p.core && !on ? '<svg viewBox="0 0 34 34"><circle class="hold" cx="17" cy="17" r="14" fill="none" stroke="var(--mark)" stroke-width="2.5"/></svg>' : '')+
+      '<i></i>'+
+    '</div>'+
   '</div>';
 }
 
 function render(){
   const mk = markFor(S.level);
-  const accent = S.activeCore || mk.c;
-  document.documentElement.style.setProperty("--mark", accent);
+  document.documentElement.style.setProperty("--mark", S.activeCore || mk.c);
   document.getElementById("storageWarn").hidden = storageOK;
 
-  /* reloj y fecha */
   const now = new Date();
-  document.getElementById("clock").textContent =
-    String(now.getHours()).padStart(2,"0") + ":" + String(now.getMinutes()).padStart(2,"0");
-  document.getElementById("date").textContent =
-    now.toLocaleDateString("es-ES",{weekday:"long", day:"numeric", month:"long"});
-
-  document.getElementById("jarvis").textContent = jarvisLine(false);
+  document.getElementById("clock").textContent = String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+  document.getElementById("date").textContent = now.toLocaleDateString("es-ES",{weekday:"long", day:"numeric", month:"long"});
+  speak(false);
 
   /* reactor */
-  const charge = dayCharge();
-  const doneCount = PROTOCOLS.filter(p=>S.done[p.id]).length;
+  const charge = dayCharge(), done = doneCount(), main = mainList();
   document.getElementById("reactor").innerHTML = reactorSVG();
-  document.getElementById("rPct").innerHTML = Math.round(charge*100) + '<span>%</span>';
-  document.getElementById("rCount").textContent = doneCount + " / " + PROTOCOLS.length;
+  countTo(document.getElementById("rPct"), Math.round(charge*100));
+  document.getElementById("rPct").innerHTML = Math.round(charge*100)+'<span>%</span>';
+  document.getElementById("rCount").textContent = done + " / " + main.length;
+
+  /* presión de cierre — el efecto de gradiente de meta */
+  const left = remaining();
+  const pr = document.getElementById("pressure");
+  const yesterday = S.log.length ? S.log[S.log.length-1] : null;
+  if(left === 0){
+    pr.className = "pressure hot";
+    pr.innerHTML = '<div><div class="p-t">Lista cerrada. Los '+main.length+' protocolos.</div>'+
+      '<div class="p-s mono">ENERGÍA DE HOY: '+S.dayEnergy+(yesterday?(' · AYER: '+(yesterday.energy||0)):"")+'</div></div>'+
+      '<div class="p-n disp">100%</div>';
+  } else {
+    const hot = left <= 5;
+    pr.className = "pressure" + (left <= 2 ? " final" : hot ? " hot" : "");
+    const msg = left === 1 ? "Queda UNO. No lo dejes ahí."
+              : left === 2 ? "Dos y cierras el día completo."
+              : left <= 5 ? "Estás en el último tramo. +200 por cerrar la lista."
+              : "Protocolos pendientes hoy.";
+    pr.innerHTML = '<div><div class="p-t">'+msg+'</div>'+
+      '<div class="p-s mono">HOY: '+S.dayEnergy+(yesterday?(' · AYER: '+(yesterday.energy||0)+(S.dayEnergy>(yesterday.energy||0)?" ▲":"")):"")+'</div></div>'+
+      '<div class="p-n disp">'+left+'</div>';
+  }
 
   /* armadura */
   document.getElementById("markName").textContent = "MARK " + mk.r;
   document.getElementById("markSub").textContent = mk.n;
   document.getElementById("lvlTxt").textContent = S.level;
   const need = needed(S.level);
-  document.getElementById("enTxt").textContent = S.energy;
+  countTo(document.getElementById("enTxt"), S.energy);
   document.getElementById("enNeed").textContent = need;
   document.getElementById("lvlBar").style.width = Math.min(100, S.energy/need*100) + "%";
-  document.getElementById("nextMark").textContent = mk.next ? ("MARK " + mk.next.r + " EN NIVEL " + mk.next.lv) : "ARMADURA MÁXIMA";
+  document.getElementById("nextMark").textContent = mk.next ? ("MARK "+mk.next.r+" EN NIVEL "+mk.next.lv) : "ARMADURA MÁXIMA";
 
   /* indicadores */
   const ov = overload();
+  const sp = streakProto();
+  const gotCore = sp ? !!S.done[sp.id] : false;
   const gs = document.getElementById("gStreak");
-  gs.classList.toggle("cold", !S.done[STREAK_CORE]);
+  gs.classList.toggle("cold", !gotCore);
   document.getElementById("streakTxt").textContent = S.streak;
-  document.getElementById("streakSub").textContent = S.done[STREAK_CORE]
-    ? "hoy contado" : (S.stabilizers ? S.stabilizers + " estabilizador" + (S.stabilizers>1?"es":"") : "falta núcleo I");
+  document.getElementById("streakSub").textContent = gotCore ? "hoy contado"
+    : (S.stabilizers ? (S.stabilizers + " estabilizador" + (S.stabilizers>1?"es":"")) : "falta núcleo I");
   document.getElementById("multTxt").textContent = "x" + ov.total.toFixed(2);
-  document.getElementById("multSub").textContent =
-    "racha +" + Math.round(ov.fromStreak*100) + "% · combo +" + Math.round(ov.fromCombo*100) + "%" + (ov.fromSurge ? " · DOBLE" : "");
-  const coresDone = [S.done.core1, S.done.core2, S.done.core3].filter(Boolean).length;
-  document.getElementById("coreTxt").textContent = coresDone + "/3";
+  document.getElementById("gOver").classList.toggle("boosted", ov.fromSurge > 0 || ov.fromDrop > 0);
+  const parts = ["racha +"+Math.round(ov.fromStreak*100)+"%", "día +"+Math.round(ov.fromDay*100)+"%"];
+  if(ov.fromCombo) parts.push("combo +"+Math.round(ov.fromCombo*100)+"%");
+  if(ov.fromDrop) parts.push("chispa +"+Math.round(ov.fromDrop*100)+"%");
+  if(ov.fromSurge) parts.push("DOBLE");
+  document.getElementById("multSub").textContent = parts.join(" · ");
+  const gc = document.getElementById("gCombo");
+  const alive = comboAlive();
+  gc.classList.toggle("cold", !alive);
+  document.getElementById("comboTxt").textContent = alive ? S.comboN : 0;
+  document.getElementById("comboSub").textContent = alive
+    ? ("quedan " + Math.max(0, Math.round((COMBO_WINDOW - (Date.now()-S.comboAt))/60000)) + " min")
+    : "sin combo";
 
   /* qué toca ahora */
   const card = document.getElementById("nowCard");
   let target = null, tag = "", why = "";
-  if(!S.done[STREAK_CORE]){
-    target = byId(STREAK_CORE); tag = "PRIORIDAD ABSOLUTA";
+  if(sp && !gotCore){
+    target = sp; tag = "PRIORIDAD ABSOLUTA";
     why = "Es el protocolo que marca la racha. En cuanto lo completes, el día está asegurado.";
-  } else if(!S.done.core2){
-    target = byId("core2"); tag = "MÁXIMA RECOMPENSA";
-    why = "70 de energía más Segundo Aliento (+45) y Doble Núcleo (+70). Nada del día paga tanto.";
   } else {
-    target = activeProtocol() || nextProtocol();
-    if(target){
-      const w = parseSlot(target.t);
-      const m = minsNow();
-      tag = (m >= w.from && m <= w.to) ? "EN CURSO AHORA" : "SIGUIENTE";
-      why = target.d;
+    const c2 = coreOf(2);
+    if(c2 && !S.done[c2.id]){
+      target = c2; tag = "MÁXIMA RECOMPENSA";
+      why = "Su energía más Segundo Aliento (+45) y Doble Núcleo (+70). Nada del día paga tanto.";
+    } else {
+      target = activeProto() || nextProto() || main.find(p=>!S.done[p.id]);
+      if(target){
+        const w = parseSlot(target.t), m = minsNow();
+        tag = (!w.all && m >= w.from && m <= w.to) ? "EN CURSO AHORA" : left <= 3 ? "CIERRA LA LISTA" : "SIGUIENTE";
+        why = target.d || "Súmalo al reactor.";
+      }
     }
   }
   if(target){
-    const w = parseSlot(target.t);
-    const m = minsNow();
-    const inWindow = !w.all && m >= w.from && m <= w.to;
-    const left = inWindow ? (w.to - m) : null;
+    const w = parseSlot(target.t), m = minsNow();
+    const inWin = !w.all && m >= w.from && m <= w.to;
     card.className = "now";
     card.innerHTML =
       '<div class="n-tag mono">'+tag+'</div>'+
       '<div class="n-title disp">'+target.n+'</div>'+
       '<div class="n-why">'+why+'</div>'+
-      (left !== null ? '<div class="n-timer mono">QUEDAN '+left+' MIN DE SU VENTANA · '+target.t+'</div>' : '<div class="n-timer mono">VENTANA '+target.t+'</div>')+
-      '<button class="n-act disp" onclick="execute(\''+target.id+'\', event)">EJECUTAR PROTOCOLO</button>';
+      '<div class="n-timer mono">'+(inWin ? ("QUEDAN "+(w.to-m)+" MIN DE SU VENTANA · ") : "VENTANA ")+target.t+' · +'+Math.round(target.e*ov.total)+'</div>'+
+      '<div class="n-acts">'+
+        '<button class="n-act disp" onclick="execute(\''+target.id+'\', event)">EJECUTAR</button>'+
+        (target.core ? '<button class="n-act ghost disp" onclick="beginFocus(\'arranque\')">SOLO 5 MIN</button>' : '')+
+      '</div>';
   } else {
     card.className = "now idle";
-    card.innerHTML =
-      '<div class="n-tag mono">SIN PENDIENTES</div>'+
-      '<div class="n-title disp">Los 19 protocolos completos</div>'+
+    card.innerHTML = '<div class="n-tag mono">SIN PENDIENTES</div>'+
+      '<div class="n-title disp">Lista completa</div>'+
       '<div class="n-why">Reactor al 100%. Mañana el traje sigue mejorando.</div>';
   }
 
-  /* secuencia de núcleos */
-  document.getElementById("seqNote").textContent = coresDone === 3 ? "COMPLETA" : (coresDone + "/3");
-  document.getElementById("seqBar").innerHTML = CHAINS.map(c=>{
+  /* bonos */
+  const defs = chainDefs();
+  const gotChains = defs.filter(c=>S.chains[c.id] != null).length;
+  document.getElementById("seqNote").textContent = gotChains + "/" + defs.length;
+  document.getElementById("seqBar").innerHTML = defs.map(c=>{
     const got = S.chains[c.id] != null;
-    return '<div class="seqcell '+(got?"got":"")+'">'+
-      '<div class="s-n disp">'+c.name+'</div>'+
-      '<div class="s-v mono">'+(got ? ("+"+S.chains[c.id]) : ("+"+c.e))+'</div>'+
-    '</div>';
+    return '<div class="seqcell '+(got?"got":"")+'"><div class="s-n disp">'+c.name+'</div>'+
+           '<div class="s-v mono">'+(got?("+"+S.chains[c.id]):("+"+c.e))+'</div></div>';
   }).join("");
 
-  /* protocolos por fase */
-  let html = "";
-  PHASES.forEach(ph=>{
-    const list = PROTOCOLS.filter(p=>p.ph===ph);
-    if(!list.length) return;
+  /* lista por bloques, en el orden que TÚ pusiste */
+  document.getElementById("listNote").textContent = done + "/" + main.length;
+  const phases = [];
+  main.forEach(p=>{ if(phases.indexOf(p.ph) === -1) phases.push(p.ph); });
+  document.getElementById("protoList").innerHTML = phases.map(ph=>{
+    const list = main.filter(p=>p.ph===ph);
     const d = list.filter(p=>S.done[p.id]).length;
-    html += '<div class="phase"><div class="phase-h mono"><span>'+ph+'</span><span class="bar"></span>'+
-            '<span class="cnt'+(d===list.length?" full":"")+'">'+d+'/'+list.length+'</span></div>'+
-            list.map(p=>modHTML(p,false)).join("")+'</div>';
-  });
-  document.getElementById("protoList").innerHTML = html;
-  document.getElementById("optList").innerHTML = OPTIONAL.map(p=>modHTML(p,true)).join("");
+    return '<div class="phase-h mono"><span>'+ph+'</span><span class="bar"></span>'+
+           '<span class="cnt'+(d===list.length?" full":"")+'">'+d+'/'+list.length+'</span></div>'+
+           list.map(modHTML).join("");
+  }).join("");
+  const opts = optList();
+  document.getElementById("optList").innerHTML = opts.length ? opts.map(modHTML).join("")
+    : '<div class="mod opt"><div class="rail"></div><div class="body"><div class="m-note">Sin protocolos opcionales. Añádelos desde EDITAR LISTA.</div></div></div>';
 
   /* sistemas */
-  document.getElementById("sysGrid").innerHTML = ["creat","cuerpo","mente","disc"].map(k=>{
-    const lv = sysLevel(S.systems[k]);
-    return '<div class="sys '+k+'">'+
-      '<div class="s-h mono"><span>'+SYSTEMS[k].name+'</span><b>NV '+lv+'</b></div>'+
-      '<div class="s-bar"><i style="width:'+sysProgress(S.systems[k]).toFixed(1)+'%"></i></div>'+
-      '<div class="s-h mono" style="margin-top:8px;"><span>'+SYSTEMS[k].label+'</span><span>'+S.systems[k]+'</span></div>'+
-    '</div>';
-  }).join("");
+  document.getElementById("sysGrid").innerHTML = ["creat","cuerpo","mente","disc"].map(k=>
+    '<div class="sys '+k+'"><div class="s-h mono"><span>'+SYSTEMS[k].name+'</span><b>NV '+sysLevel(S.systems[k])+'</b></div>'+
+    '<div class="s-bar"><i style="width:'+sysProgress(S.systems[k]).toFixed(1)+'%"></i></div>'+
+    '<div class="s-h mono" style="margin-top:8px;"><span>'+SYSTEMS[k].label+'</span><span>'+S.systems[k]+'</span></div></div>').join("");
 
   /* semana */
   const dl = ["D","L","M","X","J","V","S"];
   const past = S.log.slice(-6).map(e=>({day:e.day, core:e.core, all:e.all}));
-  const cells = past.concat([{day:today(), core:!!S.done[STREAK_CORE], all:doneCount===PROTOCOLS.length, now:true}]);
+  const cells = past.concat([{day:today(), core:gotCore, all:left===0, now:true}]);
   document.getElementById("week").innerHTML = cells.map(c=>{
     const dw = dl[new Date(c.day+"T12:00:00").getDay()];
     const cls = c.all ? "full" : c.core ? "hit" : "";
@@ -1565,56 +1820,51 @@ function render(){
   }).join("");
   document.getElementById("weekNote").textContent = cells.filter(c=>c.core).length + "/7 CON NÚCLEO I";
 
-  /* registro */
+  /* récords personales */
+  document.getElementById("prGrid").innerHTML = [
+    ["ENERGÍA EN UN DÍA", S.records.dayEnergy, S.dayEnergy >= S.records.dayEnergy && S.dayEnergy > 0],
+    ["CARGA MÁS ALTA", S.records.charge + "%", Math.round(charge*100) >= S.records.charge && charge > 0],
+    ["COMBO MÁS LARGO", S.records.combo, alive && S.comboN >= S.records.combo && S.comboN > 0],
+    ["MEJOR RACHA", S.bestStreak, S.streak >= S.bestStreak && S.streak > 0],
+  ].map(r=>'<div class="rec '+(r[2]?"pr":"")+'"><div class="r-l mono">'+r[0]+(r[2]?' · HOY':"")+'</div><div class="r-v disp">'+r[1]+'</div></div>').join("");
+
   document.getElementById("recGrid").innerHTML = [
-    ["MEJOR RACHA", S.bestStreak],
-    ["DÍAS COMPLETOS", S.perfectDays],
-    ["SECUENCIAS", S.sequences],
-    ["CICLOS DE FOCO", S.cyclesTotal],
-    ["PROTOCOLOS", S.totalDone],
-    ["ENERGÍA TOTAL", S.totalEnergy],
-    ["SOBRECARGA RÉCORD", "x" + Number(S.bestMult).toFixed(2)],
-    ["ESTABILIZADORES", S.stabilizers],
+    ["DÍAS COMPLETOS", S.perfectDays], ["SECUENCIAS", S.sequences],
+    ["CICLOS DE FOCO", S.cyclesTotal], ["PROTOCOLOS", S.totalDone],
+    ["ENERGÍA TOTAL", S.totalEnergy], ["CHISPAS", S.dropsTotal],
+    ["NÚCLEOS CRÍTICOS", S.jackpots], ["ESTABILIZADORES", S.stabilizers],
   ].map(r=>'<div class="rec"><div class="r-l mono">'+r[0]+'</div><div class="r-v disp">'+r[1]+'</div></div>').join("");
 
-  /* condecoraciones */
   document.getElementById("medals").innerHTML = MEDALS.map(m=>{
     const got = S.medals.indexOf(m.id) > -1;
     return '<div class="medal '+(got?"got":"")+'"><div class="m-i disp">'+(got?"★":"—")+'</div><div class="m-t">'+m.t+'</div></div>';
   }).join("");
 
   /* arsenal */
-  document.getElementById("credTxt").textContent = S.credits;
+  countTo(document.getElementById("credTxt"), S.credits);
   document.getElementById("shopPower").innerHTML = SHOP.filter(i=>i.kind==="power").map(it=>{
-    const extra = it.id === "stab" ? (" · Tienes " + S.stabilizers + "/3")
-                : (S.surgeDay === today() ? " · ACTIVA HOY" : "");
+    const extra = it.id === "stab" ? (" · Tienes " + S.stabilizers + "/3") : (S.surgeDay === today() ? " · ACTIVA HOY" : "");
     const can = S.credits >= it.cost;
-    return '<div class="item">'+
-      '<div class="i-ic">'+(it.id==="stab"
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="1.5"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6Z"/></svg>'
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="1.5"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></svg>')+'</div>'+
+    return '<div class="item"><div class="i-ic">'+(it.id==="stab"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="1.5"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6Z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="#ffb020" stroke-width="1.5"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></svg>')+'</div>'+
       '<div class="i-b"><div class="i-n">'+it.name+'</div><div class="i-d">'+it.desc+extra+'</div></div>'+
-      '<button class="i-btn mono" onclick="buy(\''+it.id+'\')" '+(can?"":"disabled")+'>'+it.cost+'</button>'+
-    '</div>';
+      '<button class="i-btn mono" onclick="buy(\''+it.id+'\')" '+(can?"":"disabled")+'>'+it.cost+'</button></div>';
   }).join("");
   document.getElementById("shopSkin").innerHTML = SHOP.filter(i=>i.kind==="core").map(it=>{
-    const owned = S.cores.indexOf(it.id) > -1;
-    const eq = owned && S.activeCore === it.color;
-    const can = S.credits >= it.cost;
+    const owned = S.cores.indexOf(it.id) > -1, eq = owned && S.activeCore === it.color, can = S.credits >= it.cost;
     return '<div class="item '+(owned?"owned":"")+' '+(eq?"eq":"")+'">'+
       '<div class="i-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="'+it.color+'" stroke-width="1.5"/><circle cx="12" cy="12" r="4" fill="'+it.color+'"/></svg></div>'+
       '<div class="i-b"><div class="i-n">'+it.name+'</div><div class="i-d">'+it.desc+'</div></div>'+
-      (owned
-        ? '<button class="i-btn alt mono" onclick="equipCore(\''+it.id+'\')">'+(eq?"QUITAR":"EQUIPAR")+'</button>'
-        : '<button class="i-btn mono" onclick="buy(\''+it.id+'\')" '+(can?"":"disabled")+'>'+it.cost+'</button>')+
+      (owned ? '<button class="i-btn alt mono" onclick="equipCore(\''+it.id+'\')">'+(eq?"QUITAR":"EQUIPAR")+'</button>'
+             : '<button class="i-btn mono" onclick="buy(\''+it.id+'\')" '+(can?"":"disabled")+'>'+it.cost+'</button>')+
     '</div>';
   }).join("");
   document.getElementById("rewardList").innerHTML = S.rewards.map((r,i)=>{
     const can = S.credits >= r.cost;
-    return '<div class="item">'+
-      '<div class="i-b"><div class="i-n">'+r.name+'</div><div class="i-d mono">'+r.cost+' créditos'+(r.used?(" · usada "+r.used+"×"):"")+'</div></div>'+
-      '<button class="i-btn mono" onclick="claim('+i+')" '+(can?"":"disabled")+'>CANJEAR</button>'+
-    '</div>';
+    return '<div class="item"><div class="i-b"><div class="i-n">'+r.name+'</div>'+
+      '<div class="i-d mono">'+r.cost+' créditos'+(r.used?(" · usada "+r.used+"×"):"")+'</div></div>'+
+      '<button class="i-btn mono" onclick="claim('+i+')" '+(can?"":"disabled")+'>CANJEAR</button></div>';
   }).join("");
 
   drawFocus();
@@ -1626,25 +1876,16 @@ document.querySelectorAll(".nav button").forEach(b=>{
     document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");
     section = b.dataset.sec;
-    ["dia","sistemas","arsenal","manual"].forEach(s=>{
-      document.getElementById("sec-"+s).hidden = (s !== section);
-    });
+    ["dia","sistemas","arsenal","manual"].forEach(s=>{ document.getElementById("sec-"+s).hidden = (s !== section); });
     scrollTo({top:0, behavior:"smooth"});
     buzz(8); tone(420,.05,"sine");
   });
 });
 
-/* refresco: reloj, ventana activa y cambio de día */
-setInterval(()=>{
-  if(S.lastDay !== today()){ S = load(); render(); }
-  else render();
-}, 30000);
+setInterval(()=>{ if(S.lastDay !== today()){ S = load(); render(); } else render(); }, 30000);
 setInterval(tickFocus, 1000);
 document.addEventListener("visibilitychange", ()=>{
-  if(!document.hidden){
-    if(S.lastDay !== today()) S = load();
-    render();
-  }
+  if(!document.hidden){ if(S.lastDay !== today()) S = load(); render(); }
 });
 
 /* ================= ARRANQUE ================= */
@@ -1656,10 +1897,9 @@ document.addEventListener("visibilitychange", ()=>{
 
   const bootEl = document.getElementById("boot");
   const lines = ["INICIANDO REACTOR", "CALIBRANDO SISTEMAS", "PROTOCOLO LISTO"];
-  if(S.booted || calm){
-    bootEl.classList.add("gone");
-    setTimeout(()=>bootEl.remove(), 500);
-  } else {
+  const kill = ()=>{ bootEl.classList.add("gone"); setTimeout(()=>bootEl.remove(), 500); };
+  if(S.booted || calm) kill();
+  else {
     document.getElementById("bootRing").innerHTML = reactorSVG({charge:.3, size:96});
     let i = 0;
     const txt = document.getElementById("bootTxt");
@@ -1667,13 +1907,9 @@ document.addEventListener("visibilitychange", ()=>{
     const iv = setInterval(()=>{
       i++;
       if(i < lines.length) txt.textContent = lines[i];
-      else{
-        clearInterval(iv);
-        bootEl.classList.add("gone");
-        setTimeout(()=>bootEl.remove(), 500);
-      }
+      else { clearInterval(iv); kill(); }
     }, 600);
-    bootEl.addEventListener("click", ()=>{ clearInterval(iv); bootEl.classList.add("gone"); setTimeout(()=>bootEl.remove(), 500); });
+    bootEl.addEventListener("click", ()=>{ clearInterval(iv); kill(); });
     S.booted = true; save();
   }
 
