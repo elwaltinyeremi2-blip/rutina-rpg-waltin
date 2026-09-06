@@ -765,7 +765,8 @@ function defaultState(){
     challengeDate:null, challengeXp:0,
     cycles:0, cyclesTotal:0,
     triplesTotal:0, bestMultiplier:1,
-    focusEnd:null, focusKind:null
+    focusEnd:null, focusKind:null,
+    perfectCelebratedDate:null   // evita repetir la celebración de día perfecto el mismo día
   };
 }
 
@@ -838,6 +839,7 @@ function load(){
     s.dayBonus = {};
     s.cycles = 0;
     s.streakCountedFor = null;
+    s.perfectCelebratedDate = null;
     s.lastDate = today;
     saveRaw(s);
   }
@@ -1182,6 +1184,26 @@ function celebrateChallenge(ch){
   setTimeout(()=>toast("🎯 Desafío del día completado · +" + ch.amount + " XP"), 200);
 }
 
+/* ================= DÍA PERFECTO ================= */
+/* El bono de +25 XP/+25 monedas por día perfecto se cobra al día siguiente
+   (load() lo calcula sobre el estado final de ayer), así que hasta ahora
+   completar las 19 misiones no daba NINGÚN aviso en el momento: el mayor
+   logro del día pasaba en silencio. Esto solo añade la celebración en vivo,
+   sin tocar cómo ni cuándo se otorga el bono real. */
+function checkPerfectDay(){
+  if(state.perfectCelebratedDate === todayStr()) return false;
+  if(!QUESTS.every(q=>state.done[q.id])) return false;
+  state.perfectCelebratedDate = todayStr();
+  return true;
+}
+function celebratePerfectDay(){
+  flashScreen();
+  fireConfetti('#fbbf24', 150);
+  chord([523,659,784,988,1175,1568]);
+  vibrate([40,60,40,60,40,140]);
+  toast("🌟 ¡Día perfecto! " + QUESTS.length + "/" + QUESTS.length + " misiones completas");
+}
+
 /* ================= NIVEL ================= */
 function showLevelup(level, before){
   const rank = getRank(level);
@@ -1335,6 +1357,7 @@ function toggle(id, ev){
     const streakEvent = syncStreak();
     const chal        = checkChallenge();
     const before      = levelUpCheck();
+    const perfectDay  = checkPerfectDay();
     save(); render();
 
     if(before !== null) showLevelup(state.level, before);
@@ -1342,6 +1365,7 @@ function toggle(id, ev){
     else if(newBonuses.length) celebrateChain(newBonuses[newBonuses.length-1]);
     else if(chal) celebrateChallenge(chal);
     else if(q.boss){ toast("✅ " + q.title.split(':')[0] + " · +" + gain + " XP"); fireConfetti(null, 40); }
+    if(perfectDay) setTimeout(celebratePerfectDay, before !== null ? 1300 : 900);
   } else {
     /* Devolvemos EXACTAMENTE lo que se dio (el multiplicador cambia durante el día) */
     const back = state.gained[id] != null ? state.gained[id] : q.xp;
