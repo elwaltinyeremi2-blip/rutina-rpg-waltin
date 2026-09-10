@@ -103,6 +103,9 @@
 
   .streakcard{border-color:color-mix(in srgb,var(--fire) 35%,var(--border));background:linear-gradient(150deg,rgba(251,113,55,.14),var(--panel));}
   .streakcard.pending{border-color:var(--border);background:var(--panel);}
+  .streakcard.pending.urgent{border-color:var(--danger);background:linear-gradient(150deg,rgba(248,113,113,.16),var(--panel));animation:urgentpulse 1.8s ease-in-out infinite;}
+  @keyframes urgentpulse{0%,100%{box-shadow:0 14px 40px rgba(0,0,0,.45);}50%{box-shadow:0 0 22px rgba(248,113,113,.5);}}
+  .streakcard.pending.urgent .flame{filter:drop-shadow(0 0 10px rgba(248,113,113,.7));opacity:1;animation:flamepulse 1.9s ease-in-out infinite;}
   .streaktop{display:flex;align-items:center;gap:9px;}
   .flame{font-size:30px;line-height:1;filter:drop-shadow(0 0 10px rgba(251,113,55,.6));animation:flamepulse 1.9s ease-in-out infinite;}
   .streakcard.pending .flame{filter:grayscale(1);opacity:.35;animation:none;}
@@ -112,6 +115,7 @@
   .streakstate{font-size:11px;margin-top:9px;line-height:1.35;padding-top:9px;border-top:1px solid var(--border);}
   .streakstate.ok{color:var(--cuerpo);font-weight:600;}
   .streakstate.wait{color:var(--muted);}
+  .streakstate.danger{color:var(--danger);font-weight:700;}
   .shieldrow{font-size:10.5px;color:var(--mente);margin-top:6px;font-weight:600;}
 
   .ringcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
@@ -1606,12 +1610,27 @@ function render(){
   /* racha */
   const triggerDone = !!state.done[STREAK_TRIGGER];
   const sc = document.getElementById('streakcard');
+  /* Aviso de "racha en riesgo": a partir de las 21:00, si la MISIÓN 1 sigue sin
+     marcar, la tarjeta pasa a rojo con cuenta atrás hasta medianoche. Es solo
+     una señal visual sobre datos que ya existían — no cambia cuándo ni cómo
+     sube o se rompe la racha (eso lo sigue decidiendo únicamente syncStreak). */
+  const URGENT_FROM_MIN = 21*60;
+  const nowM = nowMin();
+  const isUrgent = !triggerDone && nowM >= URGENT_FROM_MIN;
   sc.classList.toggle('pending', !triggerDone);
+  sc.classList.toggle('urgent', isUrgent);
   document.getElementById('streaknum').textContent = state.streak;
-  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : 'wait');
-  document.getElementById('streakstate').textContent = triggerDone
-    ? '✅ El día de hoy ya está contado'
-    : 'Marca la MISIÓN 1 y el día cuenta al instante';
+  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : (isUrgent ? 'danger' : 'wait'));
+  let streakMsg;
+  if(triggerDone){
+    streakMsg = '✅ El día de hoy ya está contado';
+  } else if(isUrgent){
+    const left = 1440 - nowM;
+    streakMsg = '⚠️ Racha en riesgo: quedan ' + Math.floor(left/60) + 'h ' + String(left%60).padStart(2,'0') + 'm para marcar la MISIÓN 1';
+  } else {
+    streakMsg = 'Marca la MISIÓN 1 y el día cuenta al instante';
+  }
+  document.getElementById('streakstate').textContent = streakMsg;
   const shieldRow = document.getElementById('shieldRow');
   shieldRow.hidden = state.shields <= 0;
   shieldRow.textContent = "🛡️ " + state.shields + " escudo" + (state.shields===1?"":"s") + " de racha guardado" + (state.shields===1?"":"s");
