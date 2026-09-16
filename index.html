@@ -83,6 +83,7 @@
   .xprow b{color:var(--text);}
   .xpbar{height:11px;border-radius:8px;background:#252b3a;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.5);}
   .xpbar>div{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--rank),#fff6c9);transition:width .6s cubic-bezier(.2,.9,.3,1);box-shadow:0 0 12px color-mix(in srgb,var(--rank) 60%,transparent);}
+  .nextrank{font-size:10.5px;color:var(--mente);margin-top:6px;font-weight:600;}
   .quote{font-size:11.5px;color:var(--muted);font-style:italic;margin-top:9px;line-height:1.4;}
 
   /* ============ MULTIPLICADOR ============ */
@@ -351,6 +352,7 @@
       <div class="ranksub" id="ranksub">Nivel 1</div>
       <div class="xprow"><span>XP</span><span><b id="xptxt">0</b> / <span id="xpneed">120</span></span></div>
       <div class="xpbar"><div id="xpfill" style="width:0%"></div></div>
+      <div class="nextrank" id="nextRank"></div>
       <div class="multrow">
         <span class="multbadge" id="multBadge">x1.00</span>
         <span class="multdetail" id="multDetail"></span>
@@ -863,6 +865,14 @@ function getRank(level){
     if(level>=RANKS[i].min && level<=RANKS[i].max) return {...RANKS[i], index:i};
   }
   return {...RANKS[RANKS.length-1], index:RANKS.length-1};
+}
+/* Meta cercana y visible: cuántos niveles faltan para el próximo rango.
+   Motiva más una meta a la vuelta de la esquina que una barra de XP sola. */
+function nextRankInfo(level){
+  const rank = getRank(level);
+  const next = RANKS[rank.index+1];
+  if(!next) return null;
+  return {name: next.name, levelsLeft: Math.max(1, next.min - level)};
 }
 function parseHM(str){ const [h,m]=str.trim().split(':').map(Number); return h*60+(m||0); }
 function parseWindow(t){
@@ -1591,6 +1601,12 @@ function render(){
   document.getElementById('xptxt').textContent = state.xp;
   document.getElementById('xpneed').textContent = need;
   document.getElementById('xpfill').style.width = Math.min(100, state.xp/need*100) + '%';
+
+  /* próximo rango: meta cercana y concreta, no solo la barra de XP */
+  const nr = nextRankInfo(state.level);
+  document.getElementById('nextRank').textContent = nr
+    ? ("⏳ " + nr.levelsLeft + " nivel" + (nr.levelsLeft===1?"":"es") + " para " + nr.name)
+    : "🏆 Rango máximo alcanzado";
 
   /* multiplicador */
   const mp = multParts();
