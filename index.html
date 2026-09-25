@@ -175,6 +175,11 @@
   .grp{margin-bottom:6px;}
   .grphead{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:18px 2px 9px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-weight:700;}
   .grphead .gdone{color:var(--cuerpo);}
+  /* Una sección terminada se pliega sola: la lista de hoy se acorta
+     a medida que avanza el día en vez de crecer sin parar. */
+  .grphead.foldable{cursor:pointer;}
+  .grphead.foldable:active{opacity:.6;}
+  .grphead .gfold{font-size:9.5px;letter-spacing:.4px;margin-left:6px;opacity:.7;}
   .quest{
     display:flex;align-items:center;gap:12px;background:var(--panel);
     border:1px solid var(--border);border-radius:15px;padding:12px 14px;margin-bottom:8px;
@@ -214,6 +219,12 @@
   .chainpill .cn{font-size:11px;font-weight:800;}
   .chainpill .cv{font-size:10px;color:var(--muted);margin-top:2px;}
   .chainpill.on .cv{color:var(--gold);}
+  .chainpill.next{border-color:color-mix(in srgb,var(--xp) 45%,var(--border));}
+  .chainpill.next .cv{color:var(--xp);}
+  .chestbar{display:flex;gap:7px;margin:2px 0 14px;}
+  .chestbar .chainpill{padding:9px 4px;}
+  .chestbar .cn{font-size:14px;line-height:1.1;}
+  .chestbar .cv{font-size:9.5px;}
 
   /* ============ NAV ============ */
   .bottomnav{
@@ -279,6 +290,8 @@
   .heat{display:flex;gap:5px;margin:4px 0 18px;}
   .heat .hcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
   .heat .hbox{width:100%;aspect-ratio:1;border-radius:9px;background:#202634;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;}
+  /* Día sin ningún registro (no abriste la app): hueco, no "día en blanco". */
+  .heat .hbox.miss{border-style:dashed;background:transparent;opacity:.5;}
   .heat .hlbl{font-size:9.5px;color:var(--muted);}
   .weekbox{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:16px;}
   .weekbox .wt{font-size:12.5px;font-weight:700;display:flex;justify-content:space-between;margin-bottom:9px;}
@@ -395,6 +408,9 @@
   <div id="view-quests">
     <div class="challenge" id="challengeCard"></div>
 
+    <div class="sechead">🎁 Cofres de hoy</div>
+    <div class="chestbar" id="chestBar"></div>
+
     <div class="sechead">⚔️ Cadena de jefes de hoy</div>
     <div class="chainbar" id="chainBar"></div>
 
@@ -477,6 +493,16 @@
       <h3>🔥 Cómo funciona la racha</h3>
       La racha sube <b>en el momento exacto</b> en que marcas la <b>MISIÓN 1</b> (el primer bloque de trabajo del día). No tienes que esperar al día siguiente ni completar todo lo demás.<br><br>
       Si un día no marcas la MISIÓN 1, la racha vuelve a 0 al día siguiente — <b>a menos que tengas un Escudo de Racha</b> comprado en la tienda: se consume solo y te salva ese día. Todo lo demás (gym, leer, meditar…) suma XP y sube tus atributos, pero no rompe la racha si te lo saltas.
+    </div>
+    <div class="info-block">
+      <h3>🎁 Cofres del día</h3>
+      Además del XP de cada misión, el día entero te paga por avanzar. Solo por cantidad de misiones marcadas hoy:<br><br>
+      · <b>5 misiones</b> → +25 🪙<br>
+      · <b>10 misiones</b> → +60 🪙<br>
+      · <b>15 misiones</b> → +120 🪙<br>
+      · <b>Las 19</b> → +250 🪙<br><br>
+      Son <b>monedas</b> (no XP): no aceleran los niveles, pero se gastan en escudos, Doble XP, auras y tus recompensas reales. Un día completo deja <b>455 monedas</b> solo en cofres. Si desmarcas una misión y bajas del hito, el cofre se devuelve.<br><br>
+      Y para que la lista no se haga eterna: <b>cada bloque que terminas se pliega solo</b>. Toca el título para volver a abrirlo.
     </div>
     <div class="info-block">
       <h3>🛒 La tienda</h3>
@@ -614,6 +640,15 @@ const CHAIN_BONUSES = [
   {id:"b123", need:["block1","block2","block3"],   xp:120, cat:"creat", icon:"👑", label:"Triple Jefe",     msg:"Las tres misiones. Día de guerrero."},
 ];
 
+/* Cofres por cantidad de misiones marcadas hoy. Pagan MONEDAS, no XP: así
+   recompensan el avance del día sin tocar el ritmo de niveles (xpNeeded). */
+const DAY_CHESTS = [
+  {n:5,  coins:25,  icon:"🎁", label:"5"},
+  {n:10, coins:60,  icon:"🎁", label:"10"},
+  {n:15, coins:120, icon:"💎", label:"15"},
+  {n:19, coins:250, icon:"🏆", label:"19"},
+];
+
 const CATS = {
   creat:  {short:"Creador",    label:"🎬 Creatividad", grow:"tu capa de creador"},
   cuerpo: {short:"Fuerza",     label:"💪 Fuerza",      grow:"tu cuerpo"},
@@ -739,6 +774,11 @@ function nowMin(){ const d = new Date(); return d.getHours()*60 + d.getMinutes()
 function dayDiff(a,b){
   return Math.round((new Date(b+'T12:00:00') - new Date(a+'T12:00:00'))/86400000);
 }
+/* Fecha de hace n días en el mismo formato que todayStr() */
+function dateBack(n){
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 
 function defaultState(){
   return {
@@ -766,7 +806,8 @@ function defaultState(){
     cycles:0, cyclesTotal:0,
     triplesTotal:0, bestMultiplier:1,
     focusEnd:null, focusKind:null,
-    perfectCelebratedDate:null   // evita repetir la celebración de día perfecto el mismo día
+    perfectCelebratedDate:null,  // evita repetir la celebración de día perfecto el mismo día
+    dayChests:{}                 // cofres de hoy ya cobrados (monedas por hito)
   };
 }
 
@@ -837,6 +878,7 @@ function load(){
     s.done = {};
     s.gained = {};
     s.dayBonus = {};
+    s.dayChests = {};
     s.cycles = 0;
     s.streakCountedFor = null;
     s.perfectCelebratedDate = null;
@@ -850,6 +892,9 @@ function save(){ saveRaw(state); }
 
 let state = load();
 let currentView = "quests";
+/* Secciones completas que el usuario abrió a mano (no se guarda: cada vez que
+   abres la app, lo terminado vuelve a estar plegado y la lista queda corta). */
+let openGroups = {};
 
 /* ================= CÁLCULOS ================= */
 /* Curva pensada para que el nivel 1000 sea una meta de años, no de siglos.
@@ -1158,6 +1203,33 @@ function celebrateChain(b){
   setTimeout(()=>toast(b.icon + " " + b.label + " · +" + b.amount + " XP"), 200);
 }
 
+/* ================= COFRES DEL DÍA ================= */
+/* Recompensa en monedas por cantidad de misiones marcadas hoy. Igual que los
+   bonos de cadena: se cobra al cruzar el hito y se devuelve si desmarcas. */
+function chestsDoneCount(){ return QUESTS.filter(q=>state.done[q.id]).length; }
+function syncChests(){
+  const count = chestsDoneCount();
+  const fresh = [];
+  DAY_CHESTS.forEach(c=>{
+    const had = state.dayChests[c.n] != null;
+    if(count >= c.n && !had){
+      state.dayChests[c.n] = c.coins;
+      state.coins += c.coins;
+      fresh.push(c);
+    } else if(count < c.n && had){
+      state.coins = Math.max(0, state.coins - state.dayChests[c.n]);
+      delete state.dayChests[c.n];
+    }
+  });
+  return fresh;
+}
+function celebrateChest(c){
+  fireConfetti('#fbbf24', 70);
+  chord([659,880,1047]);
+  vibrate([30,50,30]);
+  toast(c.icon + " Cofre de " + c.n + " misiones · +" + c.coins + " 🪙");
+}
+
 /* ================= DESAFÍO DIARIO ================= */
 function todaysChallenge(){
   const t = todayStr();
@@ -1354,6 +1426,7 @@ function toggle(id, ev){
     vibrate(18); beep(560,.09,'triangle');
 
     const newBonuses  = syncBonuses();
+    const newChests   = syncChests();
     const streakEvent = syncStreak();
     const chal        = checkChallenge();
     const before      = levelUpCheck();
@@ -1366,6 +1439,8 @@ function toggle(id, ev){
     else if(chal) celebrateChallenge(chal);
     else if(q.boss){ toast("✅ " + q.title.split(':')[0] + " · +" + gain + " XP"); fireConfetti(null, 40); }
     if(perfectDay) setTimeout(celebratePerfectDay, before !== null ? 1300 : 900);
+    /* El cofre siempre llega con retraso para no pisar la celebración de arriba */
+    if(newChests.length) setTimeout(()=>celebrateChest(newChests[newChests.length-1]), perfectDay ? 2600 : 1600);
   } else {
     /* Devolvemos EXACTAMENTE lo que se dio (el multiplicador cambia durante el día) */
     const back = state.gained[id] != null ? state.gained[id] : q.xp;
@@ -1374,6 +1449,7 @@ function toggle(id, ev){
     state.totalQuestsCompleted -= 1;
     if(state.totalQuestsCompleted < 0) state.totalQuestsCompleted = 0;
     syncBonuses();
+    syncChests();
     syncStreak();
     save(); render();
   }
@@ -1571,6 +1647,11 @@ function questRow(q, extra){
   </div>`;
 }
 
+function toggleGroup(i){
+  openGroups[i] = !openGroups[i];
+  render(); vibrate(8);
+}
+
 function render(){
   const rank = getRank(state.level);
   document.documentElement.style.setProperty('--rank', rank.color);
@@ -1638,6 +1719,18 @@ function render(){
       <div class="cx">${chDone ? ('Cobrado: +' + state.challengeXp + ' XP') : ('Recompensa: +' + ch.xp + ' XP × multiplicador')}</div>
     </div>`;
 
+  /* cofres del día */
+  const nextChest = DAY_CHESTS.find(c=>state.dayChests[c.n] == null);
+  document.getElementById('chestBar').innerHTML = DAY_CHESTS.map(c=>{
+    const got = state.dayChests[c.n] != null;
+    const isNext = !got && nextChest && nextChest.n === c.n;
+    const falta = c.n - doneCount;
+    return `<div class="chainpill ${got?'on':''} ${isNext?'next':''}">
+      <div class="cn">${got ? c.icon : '🔒'} ${c.label}</div>
+      <div class="cv">${got ? ('+' + c.coins + ' 🪙') : isNext ? ('faltan ' + falta) : ('+' + c.coins + ' 🪙')}</div>
+    </div>`;
+  }).join('');
+
   /* cadena de jefes */
   document.getElementById('chainBar').innerHTML = CHAIN_BONUSES.map(b=>{
     const got = state.dayBonus[b.id] != null;
@@ -1666,11 +1759,16 @@ function render(){
     </div>`;
   }).join('');
 
-  /* misiones */
-  document.getElementById('questList').innerHTML = SECTIONS.map(([label, ids])=>{
+  /* misiones (las secciones completas se plegan para acortar la lista) */
+  document.getElementById('questList').innerHTML = SECTIONS.map(([label, ids], gi)=>{
     const d = ids.filter(id=>state.done[id]).length;
-    const rows = ids.map(id=>questRow(QUESTS.find(x=>x.id===id), false)).join('');
-    return `<div class="grp"><div class="grphead"><span>${label}</span><span class="${d===ids.length?'gdone':''}">${d}/${ids.length}</span></div>${rows}</div>`;
+    const full = d === ids.length;
+    const open = !full || !!openGroups[gi];
+    const rows = open ? ids.map(id=>questRow(QUESTS.find(x=>x.id===id), false)).join('') : '';
+    const head = full
+      ? `<div class="grphead foldable" onclick="toggleGroup(${gi})"><span>${label}</span><span class="gdone">✓ ${d}/${ids.length}<span class="gfold">${open?'ocultar ▲':'ver ▼'}</span></span></div>`
+      : `<div class="grphead"><span>${label}</span><span>${d}/${ids.length}</span></div>`;
+    return `<div class="grp">${head}${rows}</div>`;
   }).join('');
 
   /* misiones extra */
@@ -1719,12 +1817,20 @@ function render(){
   document.getElementById('cyclesTxt').textContent       = state.cyclesTotal;
   document.getElementById('bestMultTxt').textContent     = "x" + Number(state.bestMultiplier).toFixed(2);
 
-  /* mapa de calor: 6 días de historial + hoy en vivo */
+  /* Mapa de calor de los 7 días REALES de calendario. Antes se pintaban los 6
+     últimos registros del historial, que solo se escriben al abrir la app: si te
+     saltabas un día, ese hueco desaparecía y la semana parecía perfecta. */
   const days = ['D','L','M','X','J','V','S'];
-  const past = state.history.slice(-6).map(h=>({
-    date:h.date, trigger:h.trigger, allDone:h.allDone, pct:h.doneCount/h.total
-  }));
-  const cells = past.concat([{date:todayStr(), trigger:triggerDone, allDone:doneCount===QUESTS.length, pct:pct, today:true}]);
+  const byDate = {};
+  state.history.forEach(h=>{ byDate[h.date] = h; });
+  const cells = [];
+  for(let i=6;i>=1;i--){
+    const ds = dateBack(i), h = byDate[ds];
+    cells.push(h
+      ? {date:ds, trigger:!!h.trigger, allDone:!!h.allDone, pct:h.total ? h.doneCount/h.total : 0}
+      : {date:ds, trigger:false, allDone:false, pct:0, missing:true});
+  }
+  cells.push({date:todayStr(), trigger:triggerDone, allDone:doneCount===QUESTS.length, pct:pct, today:true});
   document.getElementById('heat').innerHTML = cells.map(c=>{
     const dow = days[new Date(c.date+'T12:00:00').getDay()];
     const icon = c.allDone ? '⭐' : c.trigger ? '🔥' : c.pct>0 ? '·' : '';
@@ -1732,7 +1838,7 @@ function render(){
              : c.trigger ? 'background:rgba(251,113,55,.20);border-color:var(--fire);'
              : c.pct>0   ? 'background:rgba(96,165,250,.12);' : '';
     const ring = c.today ? 'box-shadow:0 0 0 2px var(--rank);' : '';
-    return `<div class="hcol"><div class="hbox" style="${bg}${ring}">${icon}</div><div class="hlbl">${dow}</div></div>`;
+    return `<div class="hcol"><div class="hbox ${c.missing?'miss':''}" style="${bg}${ring}">${icon}</div><div class="hlbl">${dow}</div></div>`;
   }).join('');
 
   /* semana */
