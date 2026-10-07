@@ -103,6 +103,10 @@
 
   .streakcard{border-color:color-mix(in srgb,var(--fire) 35%,var(--border));background:linear-gradient(150deg,rgba(251,113,55,.14),var(--panel));}
   .streakcard.pending{border-color:var(--border);background:var(--panel);}
+  .streakcard.danger{border-color:var(--danger);background:linear-gradient(150deg,rgba(248,113,113,.18),var(--panel));animation:streakdanger 1.7s ease-in-out infinite;}
+  @keyframes streakdanger{0%,100%{box-shadow:0 0 0 rgba(248,113,113,0);}50%{box-shadow:0 0 16px rgba(248,113,113,.45);}}
+  .streakcard.danger .flame{filter:drop-shadow(0 0 10px rgba(248,113,113,.7));opacity:1;animation:flamepulse 1.9s ease-in-out infinite;}
+  .streakstate.danger{color:var(--danger);font-weight:700;}
   .streaktop{display:flex;align-items:center;gap:9px;}
   .flame{font-size:30px;line-height:1;filter:drop-shadow(0 0 10px rgba(251,113,55,.6));animation:flamepulse 1.9s ease-in-out infinite;}
   .streakcard.pending .flame{filter:grayscale(1);opacity:.35;animation:none;}
@@ -568,6 +572,9 @@
 const STORAGE_KEY = "rutina_rpg_waltin_v1";
 /* La racha se gana al completar ESTA misión. Cambia el id si mueves el bloque. */
 const STREAK_TRIGGER = "block1";
+/* A partir de esta hora, si la racha no está asegurada, se muestra la alerta
+   roja de "racha en peligro". 21:00 deja margen hasta la hora de dormir (00:30). */
+const STREAK_DANGER_MIN = 21*60;
 
 /* Los 19 hábitos de siempre. Los id NUNCA cambian: son las claves del progreso
    guardado. Orden y horarios sí se reordenaron para quitar cuellos de botella. */
@@ -766,7 +773,8 @@ function defaultState(){
     cycles:0, cyclesTotal:0,
     triplesTotal:0, bestMultiplier:1,
     focusEnd:null, focusKind:null,
-    perfectCelebratedDate:null   // evita repetir la celebración de día perfecto el mismo día
+    perfectCelebratedDate:null,  // evita repetir la celebración de día perfecto el mismo día
+    streakDangerWarnedDate:null  // evita repetir el aviso de "racha en peligro" el mismo día
   };
 }
 
@@ -1605,13 +1613,30 @@ function render(){
 
   /* racha */
   const triggerDone = !!state.done[STREAK_TRIGGER];
+  const inDanger = !triggerDone && state.streak > 0 && nowMin() >= STREAK_DANGER_MIN;
   const sc = document.getElementById('streakcard');
   sc.classList.toggle('pending', !triggerDone);
+  sc.classList.toggle('danger', inDanger);
   document.getElementById('streaknum').textContent = state.streak;
-  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : 'wait');
-  document.getElementById('streakstate').textContent = triggerDone
-    ? '✅ El día de hoy ya está contado'
-    : 'Marca la MISIÓN 1 y el día cuenta al instante';
+  const stateEl = document.getElementById('streakstate');
+  if(triggerDone){
+    stateEl.className = 'streakstate ok';
+    stateEl.textContent = '✅ El día de hoy ya está contado';
+  } else if(inDanger){
+    const left = 1440 - nowMin();
+    stateEl.className = 'streakstate danger';
+    stateEl.textContent = '⚠️ Quedan ' + Math.floor(left/60) + 'h ' + (left%60) + 'min. Marca la MISIÓN 1 o pierdes tu racha de ' + state.streak + ' día' + (state.streak===1?'':'s') + '.'
+      + (state.shields>0 ? ' (tienes un 🛡️ que la salvaría)' : '');
+    if(state.streakDangerWarnedDate !== todayStr()){
+      state.streakDangerWarnedDate = todayStr();
+      save();
+      setTimeout(()=>toast('⚠️ Racha de ' + state.streak + ' día' + (state.streak===1?'':'s') + ' en peligro · quedan ' + Math.floor(left/60) + 'h ' + (left%60) + 'min'), 300);
+      vibrate([60,40,60,40,120]); beep(330,.25,'sawtooth');
+    }
+  } else {
+    stateEl.className = 'streakstate wait';
+    stateEl.textContent = 'Marca la MISIÓN 1 y el día cuenta al instante';
+  }
   const shieldRow = document.getElementById('shieldRow');
   shieldRow.hidden = state.shields <= 0;
   shieldRow.textContent = "🛡️ " + state.shields + " escudo" + (state.shields===1?"":"s") + " de racha guardado" + (state.shields===1?"":"s");
