@@ -112,6 +112,9 @@
   .streakstate{font-size:11px;margin-top:9px;line-height:1.35;padding-top:9px;border-top:1px solid var(--border);}
   .streakstate.ok{color:var(--cuerpo);font-weight:600;}
   .streakstate.wait{color:var(--muted);}
+  .streakstate.soon{color:var(--gold);font-weight:600;}
+  .streakstate.urgent{color:var(--danger);font-weight:700;animation:streakurgent 1.3s ease-in-out infinite;}
+  @keyframes streakurgent{0%,100%{opacity:1;}50%{opacity:.5;}}
   .shieldrow{font-size:10.5px;color:var(--mente);margin-top:6px;font-weight:600;}
 
   .ringcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
@@ -1608,10 +1611,27 @@ function render(){
   const sc = document.getElementById('streakcard');
   sc.classList.toggle('pending', !triggerDone);
   document.getElementById('streaknum').textContent = state.streak;
-  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : 'wait');
-  document.getElementById('streakstate').textContent = triggerDone
-    ? '✅ El día de hoy ya está contado'
-    : 'Marca la MISIÓN 1 y el día cuenta al instante';
+  const streakStateEl = document.getElementById('streakstate');
+  if(triggerDone){
+    streakStateEl.className = 'streakstate ok';
+    streakStateEl.textContent = '✅ El día de hoy ya está contado';
+  } else {
+    /* Cuanto más se acerca la medianoche sin marcar la MISIÓN 1, más urgente
+       se ve el aviso: así el riesgo de perder la racha se nota ANTES de que
+       sea demasiado tarde para reaccionar, no después. */
+    const minsLeft = 1440 - nowMin();
+    const timeTxt = Math.floor(minsLeft/60) + "h " + String(minsLeft%60).padStart(2,'0') + "min";
+    if(minsLeft <= 120){
+      streakStateEl.className = 'streakstate urgent';
+      streakStateEl.textContent = '🚨 Quedan ' + timeTxt + ' — marca la MISIÓN 1 o se rompe tu racha de ' + state.streak + (state.streak===1?' día':' días');
+    } else if(minsLeft <= 300){
+      streakStateEl.className = 'streakstate soon';
+      streakStateEl.textContent = '⏳ Quedan ' + timeTxt + ' para asegurar la racha con la MISIÓN 1';
+    } else {
+      streakStateEl.className = 'streakstate wait';
+      streakStateEl.textContent = 'Marca la MISIÓN 1 y el día cuenta al instante';
+    }
+  }
   const shieldRow = document.getElementById('shieldRow');
   shieldRow.hidden = state.shields <= 0;
   shieldRow.textContent = "🛡️ " + state.shields + " escudo" + (state.shields===1?"":"s") + " de racha guardado" + (state.shields===1?"":"s");
