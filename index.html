@@ -103,6 +103,9 @@
 
   .streakcard{border-color:color-mix(in srgb,var(--fire) 35%,var(--border));background:linear-gradient(150deg,rgba(251,113,55,.14),var(--panel));}
   .streakcard.pending{border-color:var(--border);background:var(--panel);}
+  .streakcard.warn{border-color:color-mix(in srgb, var(--disc) 55%, var(--border));background:linear-gradient(150deg,rgba(249,115,22,.16),var(--panel));}
+  .streakcard.danger{border-color:var(--danger);background:linear-gradient(150deg,rgba(248,113,113,.20),var(--panel));animation:dangerpulse 1.6s ease-in-out infinite;}
+  @keyframes dangerpulse{0%,100%{box-shadow:0 0 0 rgba(248,113,113,0);}50%{box-shadow:0 0 22px rgba(248,113,113,.5);}}
   .streaktop{display:flex;align-items:center;gap:9px;}
   .flame{font-size:30px;line-height:1;filter:drop-shadow(0 0 10px rgba(251,113,55,.6));animation:flamepulse 1.9s ease-in-out infinite;}
   .streakcard.pending .flame{filter:grayscale(1);opacity:.35;animation:none;}
@@ -112,6 +115,8 @@
   .streakstate{font-size:11px;margin-top:9px;line-height:1.35;padding-top:9px;border-top:1px solid var(--border);}
   .streakstate.ok{color:var(--cuerpo);font-weight:600;}
   .streakstate.wait{color:var(--muted);}
+  .streakstate.warn{color:var(--disc);font-weight:700;}
+  .streakstate.danger{color:var(--danger);font-weight:800;}
   .shieldrow{font-size:10.5px;color:var(--mente);margin-top:6px;font-weight:600;}
 
   .ringcard{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
@@ -850,6 +855,7 @@ function save(){ saveRaw(state); }
 
 let state = load();
 let currentView = "quests";
+let streakDangerToastDate = null; // evita repetir el aviso de "racha en peligro" en cada render
 
 /* ================= CÁLCULOS ================= */
 /* Curva pensada para que el nivel 1000 sea una meta de años, no de siglos.
@@ -1277,6 +1283,12 @@ function fmtMS(ms){
   const t = Math.ceil(ms/1000);
   return String(Math.floor(t/60)).padStart(2,'0') + ":" + String(t%60).padStart(2,'0');
 }
+/* Minutos restantes hasta medianoche, en formato legible ("2h 40min" / "35 min") */
+function fmtLeft(mins){
+  const h = Math.floor(mins/60), m = mins%60;
+  if(h <= 0) return m + " min";
+  return h + "h" + (m>0 ? " " + m + "min" : "");
+}
 /* Se ejecuta cada segundo. Sobrevive a cerrar la app porque guarda el instante
    final, no los segundos restantes. */
 function tickFocus(){
@@ -1607,11 +1619,36 @@ function render(){
   const triggerDone = !!state.done[STREAK_TRIGGER];
   const sc = document.getElementById('streakcard');
   sc.classList.toggle('pending', !triggerDone);
+
+  /* Aviso de "racha en peligro": la MISIÓN 1 debería caer entre 9:45 y 12:45,
+     así que si a las 19:00 sigue sin marcarse ya vale la pena avisar, y a las
+     22:00 (quedan 2h para la medianoche) toca ponerse serios. Pura aversión a
+     la pérdida: no cambia en qué momento sube la racha, solo avisa antes. */
+  const minsLeft = 1440 - nowMin();
+  let streakTier = 'ok';
+  if(!triggerDone){
+    streakTier = nowMin() >= 1320 ? 'danger' : nowMin() >= 1140 ? 'warn' : 'wait';
+  }
+  sc.classList.toggle('warn', streakTier === 'warn');
+  sc.classList.toggle('danger', streakTier === 'danger');
+
   document.getElementById('streaknum').textContent = state.streak;
-  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : 'wait');
+  document.getElementById('streakstate').className = 'streakstate ' + (triggerDone ? 'ok' : streakTier);
   document.getElementById('streakstate').textContent = triggerDone
     ? '✅ El día de hoy ya está contado'
-    : 'Marca la MISIÓN 1 y el día cuenta al instante';
+    : streakTier === 'danger'
+      ? '⚠️ Quedan ' + fmtLeft(minsLeft) + (state.streak > 0 ? ' — no dejes que se rompa la racha de ' + state.streak + ' días' : ' para asegurar el día')
+      : streakTier === 'warn'
+        ? '⏳ Quedan ' + fmtLeft(minsLeft) + '. Marca la MISIÓN 1 y asegura el día'
+        : 'Marca la MISIÓN 1 y el día cuenta al instante';
+
+  if(streakTier === 'danger' && streakDangerToastDate !== todayStr()){
+    streakDangerToastDate = todayStr();
+    setTimeout(()=>{
+      toast('⚠️ Quedan ' + fmtLeft(minsLeft) + ' para no perder la racha' + (state.streak > 0 ? ' de ' + state.streak + ' días' : ''));
+      vibrate([50,40,50,40,90]);
+    }, 500);
+  }
   const shieldRow = document.getElementById('shieldRow');
   shieldRow.hidden = state.shields <= 0;
   shieldRow.textContent = "🛡️ " + state.shields + " escudo" + (state.shields===1?"":"s") + " de racha guardado" + (state.shields===1?"":"s");
